@@ -1,629 +1,398 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Direktori & Manajemen Karyawan</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoring Status OLT Down Stasiun</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Flatpickr Date Picker CSS (Dark Theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+    body { background-color: #0b1329; color: #f8fafc; padding: 24px; min-height: 100vh; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .title-group h1 { font-size: 24px; font-weight: 700; color: #ffffff; }
+    .title-group p { font-size: 14px; color: #94a3b8; margin-top: 4px; }
+    
+    .status-badge { background: #182238; border: 1px solid #2e3d5c; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.9); } }
+
+    /* Panel Filter Grid */
+    .filter-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-group label { font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; cursor: pointer; }
+    .filter-control:focus { border-color: #38bdf8; }
+    
+    .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; height: 40px; }
+    .btn-reset:hover { background: rgba(239, 68, 68, 0.3); }
+
+    .table-container { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background-color: #0f172a; color: #94a3b8; font-weight: 600; padding: 16px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid #2e3d5c; white-space: nowrap; }
+    td { padding: 14px 16px; border-bottom: 1px solid #2e3d5c; color: #cbd5e1; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #1f2d4a; }
+
+    .stasiun-tag { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-block; white-space: nowrap; }
+    .ip-code { font-family: monospace; background: #0f172a; padding: 4px 8px; border-radius: 4px; color: #38bdf8; border: 1px solid #1e293b; }
+    .brand-tag { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; }
+
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; text-align: center; }
+    .badge-down { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-resolved { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+    .last-update { font-size: 12px; color: #64748b; text-align: right; margin-top: 16px; }
+
+    .flatpickr-calendar { background: #182238 !important; border: 1px solid #2e3d5c !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
+    .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #38bdf8 !important; border-color: #38bdf8 !important; color: #0b1329 !important; font-weight: bold; }
+    .flatpickr-day.inRange { background: rgba(56, 189, 248, 0.2) !important; box-shadow: -5px 0 0 rgba(56, 189, 248, 0.2), 5px 0 0 rgba(56, 189, 248, 0.2) !important; }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body>
 
-    <!-- Header / Navbar -->
-    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-indigo-500 rounded-lg shadow-inner">
-                    <i data-lucide="users" class="w-6 h-6 text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wide">Direktori Karyawan</h1>
-                    <p class="text-xs text-indigo-200">Sistem Informasi Kontrak & Monitoring KPI</p>
-                </div>
-            </div>
-            
-            <!-- Actions Header -->
-            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
-                <button id="btn-add-modal" class="bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center space-x-2 transition shadow-md hover:shadow-lg">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i>
-                    <span>Tambah Karyawan</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        <!-- Metrics Overview -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Total Karyawan</p>
-                    <h3 id="stat-total" class="text-2xl font-bold text-slate-800">0</h3>
-                </div>
-                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-                    <i data-lucide="users" class="w-6 h-6"></i>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Kontrak Aman</p>
-                    <h3 id="stat-safe" class="text-2xl font-bold text-emerald-600">0</h3>
-                </div>
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                    <i data-lucide="shield-check" class="w-6 h-6"></i>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Segera Habis (&lt;30 Hari)</p>
-                    <h3 id="stat-warning" class="text-2xl font-bold text-amber-600">0</h3>
-                </div>
-                <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                    <i data-lucide="clock" class="w-6 h-6"></i>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">Kontrak Habis/Minus</p>
-                    <h3 id="stat-expired" class="text-2xl font-bold text-rose-600">0</h3>
-                </div>
-                <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
-                    <i data-lucide="alert-circle" class="w-6 h-6"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Controls Bar: Search & View Toggle -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            
-            <!-- Search Bar -->
-            <div class="relative w-full md:w-96">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                <input type="text" id="input-search" placeholder="Cari nama atau tempat tinggal..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-            </div>
-
-            <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end">
-                <!-- Filter Status -->
-                <select id="select-filter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                    <option value="all">Semua Status Kontrak</option>
-                    <option value="safe">Kontrak Aman (>30 Hari)</option>
-                    <option value="warning">Segera Habis (1 - 30 Hari)</option>
-                    <option value="expired">Kontrak Habis (&le;0 Hari)</option>
-                </select>
-
-                <!-- View Switcher Toggle -->
-                <div class="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-100">
-                    <button id="view-grid" class="p-1.5 rounded-md bg-white shadow-sm text-indigo-600 font-medium transition" title="Grid View">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                    </button>
-                    <button id="view-table" class="p-1.5 rounded-md text-slate-500 hover:text-slate-800 transition" title="Table View">
-                        <i data-lucide="table" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Directory Grid View -->
-        <div id="container-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamic Content Generated via JS -->
-        </div>
-
-        <!-- Directory Table View (Hidden by Default) -->
-        <div id="container-table" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 text-slate-600 uppercase text-xs font-semibold border-b border-slate-200">
-                        <tr>
-                            <th class="py-3 px-4">Karyawan</th>
-                            <th class="py-3 px-4">Tgl Lahir / Umur</th>
-                            <th class="py-3 px-4">Domisili</th>
-                            <th class="py-3 px-4">Awal Kontrak</th>
-                            <th class="py-3 px-4">Akhir Kontrak</th>
-                            <th class="py-3 px-4">Sisa Kontrak</th>
-                            <th class="py-3 px-4">KPI</th>
-                            <th class="py-3 px-4 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body" class="divide-y divide-slate-100">
-                        <!-- Dynamic Content Generated via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Empty State -->
-        <div id="empty-state" class="hidden text-center py-12 bg-white rounded-xl border border-slate-200">
-            <i data-lucide="user-x" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
-            <h4 class="text-base font-semibold text-slate-700">Data Tidak Ditemukan</h4>
-            <p class="text-xs text-slate-400 mt-1">Coba kata kunci atau filter pencarian yang berbeda.</p>
-        </div>
-
-    </main>
-
-    <!-- Modal Form (Add / Edit Karyawan) -->
-    <div id="modal-form" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
-        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden transform scale-95 transition-transform duration-200 max-h-[90vh] flex flex-col">
-            <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
-                <h3 id="modal-title" class="text-lg font-bold text-slate-800">Tambah Karyawan</h3>
-                <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <form id="employee-form" class="p-6 space-y-4 overflow-y-auto">
-                <input type="hidden" id="form-id">
-
-                <!-- Dynamic Photo Edit Section -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Foto Profil</label>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative w-16 h-16 rounded-full overflow-hidden border-2 border-indigo-500 bg-slate-100 flex-shrink-0">
-                            <img id="form-photo-preview" src="" alt="Preview" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-1 space-y-2">
-                            <label class="cursor-pointer inline-flex items-center px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
-                                <i data-lucide="upload" class="w-3.5 h-3.5 mr-1.5 text-indigo-600"></i>
-                                Upload Foto Baru
-                                <input type="file" id="form-photo-file" accept="image/*" class="hidden">
-                            </label>
-                            <p class="text-[10px] text-slate-400">Pilih foto dari komputer kamu (opsional).</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap *</label>
-                    <input type="text" id="form-nama" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Lahir *</label>
-                        <input type="date" id="form-tgl-lahir" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nilai KPI (0-100)</label>
-                        <input type="number" id="form-kpi" min="0" max="100" value="80" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tempat Tinggal / Domisili</label>
-                    <input type="text" id="form-tempat-tinggal" placeholder="misal: Jakarta Selatan" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Awal Kontrak *</label>
-                        <input type="date" id="form-awal-kontrak" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Akhir Kontrak *</label>
-                        <input type="date" id="form-akhir-kontrak" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-200 flex justify-end space-x-3">
-                    <button type="button" id="btn-cancel-modal" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow-md">
-                        Simpan Data
-                    </button>
-                </div>
-            </form>
-        </div>
+  <div class="container">
+    <div class="header">
+      <div class="title-group">
+        <h1>Monitoring Status OLT Down</h1>
+        <p>Sistem Pemantauan Gangguan OLT Stasiun Real-Time</p>
+      </div>
+      <div class="status-badge">
+        <span class="dot"></span>
+        <span id="sync-status">Live Sync (10s)</span>
+      </div>
     </div>
 
-    <!-- Modal Detail Karyawan -->
-    <div id="modal-detail" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform scale-95 transition-transform duration-200">
-            <div id="detail-card-content">
-                <!-- Dynamic Content via JS -->
-            </div>
-            <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end">
-                <button id="btn-close-detail" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
-                    Tutup
-                </button>
-            </div>
-        </div>
+    <!-- Panel Filter -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label>Cari Kata Kunci</label>
+        <input type="text" id="search-input" class="filter-control" placeholder="Cari IP, Hostname, Problem..." oninput="terapkanFilter()">
+      </div>
+
+      <div class="filter-group">
+        <label>Pilih Stasiun</label>
+        <select id="filter-stasiun" class="filter-control" onchange="terapkanFilter()">
+          <option value="">Semua Stasiun</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Filter Rentang Tanggal</label>
+        <input type="text" id="filter-date-range" class="filter-control" placeholder="Pilih Tanggal / Rentang..." readonly>
+      </div>
+
+      <div class="filter-group">
+        <label>Category</label>
+        <select id="filter-category" class="filter-control" onchange="terapkanFilter()">
+          <option value="">Semua Category</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <button class="btn-reset" onclick="resetFilter()">Reset Filter</button>
+      </div>
     </div>
 
-    <!-- Script Application -->
-    <script>
-        // Data Karyawan Awal (22 Orang)
-        const initialEmployees = [
-            { id: 1, nama: "MUHAMMAD EFFENDI", tglLahir: "1993-09-09", tempatTinggal: "Jakarta", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 85, foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250" },
-            { id: 2, nama: "EDWARD JANPUTRA K...", tglLahir: "1991-01-02", tempatTinggal: "Jakarta Selatan", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 80, foto: "./edward.jpg" },
-            { id: 3, nama: "RISKE DWI HISMA RANTI", tglLahir: "1998-03-31", tempatTinggal: "Jakarta", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 88, foto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=250" },
-            { id: 4, nama: "MUHAMAD KHOLID SH...", tglLahir: "2000-06-29", tempatTinggal: "Jakarta", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 82, foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250" },
-            { id: 5, nama: "MATHEUS MOGOT", tglLahir: "1990-11-07", tempatTinggal: "Tangerang", awalKontrak: "2026-04-01", akhirKontrak: "2026-12-31", kpi: 79, foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=250" },
-            { id: 6, nama: "MISBAHUL KARIM", tglLahir: "1991-07-02", tempatTinggal: "Depok", awalKontrak: "2026-04-01", akhirKontrak: "2026-12-31", kpi: 84, foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=250" },
-            { id: 7, nama: "FAISAL SULAEMAN", tglLahir: "2003-07-31", tempatTinggal: "Bogor", awalKontrak: "2026-04-01", akhirKontrak: "2026-12-31", kpi: 86, foto: "./faisal.jpg" },
-            { id: 8, nama: "NENGAH ADITIA WARD...", tglLahir: "2000-12-02", tempatTinggal: "Bekasi", awalKontrak: "2026-06-18", akhirKontrak: "2026-12-31", kpi: 81, foto: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=250" },
-            { id: 9, nama: "MUHAMMAD IKHSAN H...", tglLahir: "2001-07-04", tempatTinggal: "Jakarta", awalKontrak: "2026-04-06", akhirKontrak: "2026-12-31", kpi: 83, foto: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=250" },
-            { id: 10, nama: "I KETUT GUMBYAR", tglLahir: "2002-02-27", tempatTinggal: "Jakarta", awalKontrak: "2026-01-26", akhirKontrak: "2026-09-30", kpi: 75, foto: "ketut.jpg" },
-            { id: 11, nama: "ADAM YOGI SAPUTRA", tglLahir: "1996-10-30", tempatTinggal: "Tangerang", awalKontrak: "2026-05-01", akhirKontrak: "2026-12-31", kpi: 87, foto: "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=250" },
-            { id: 12, nama: "TEGAR SAPUTRA", tglLahir: "2002-06-23", tempatTinggal: "Bekasi", awalKontrak: "2026-01-26", akhirKontrak: "2026-12-31", kpi: 90, foto: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=250" },
-            { id: 13, nama: "TABAH PUTRA WARDA...", tglLahir: "2000-02-23", tempatTinggal: "Depok", awalKontrak: "2026-01-26", akhirKontrak: "2026-12-31", kpi: 83, foto: "https://images.unsplash.com./photo-1527980965255-d3b416303d12?auto=format&fit=crop&q=80&w=250" },
-            { id: 14, nama: "MUHAMMAD HAIKHAL ...", tglLahir: "2005-09-26", tempatTinggal: "Jakarta", awalKontrak: "2026-01-26", akhirKontrak: "2026-10-10", kpi: 78, foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=250" },
-            { id: 15, nama: "EDO AGUSTIAN WIBO...", tglLahir: "2002-09-15", tempatTinggal: "Jakarta Timur", awalKontrak: "2026-01-26", akhirKontrak: "2026-09-30", kpi: 76, foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=250" },
-            { id: 16, nama: "KHAIRUZAKY PRATAMA", tglLahir: "2000-05-04", tempatTinggal: "Bogor", awalKontrak: "2026-06-27", akhirKontrak: "2026-12-31", kpi: 89, foto: "./firas.jpg" },
-            { id: 17, nama: "FIRAS MOGA SYAHID F", tglLahir: "1993-11-26", tempatTinggal: "Jakarta Utara", awalKontrak: "2026-04-01", akhirKontrak: "2026-12-31", kpi: 85, foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250" },
-            { id: 18, nama: "NANA NUR APRIAN", tglLahir: "1992-04-25", tempatTinggal: "Cibinong", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 89, foto: "./nana.jpg" },
-            { id: 19, nama: "ANDRIANTO RAMADHAN", tglLahir: "1996-02-20", tempatTinggal: "Jakarta Pusat", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 84, foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=250" },
-            { id: 20, nama: "DENISA MEDIRA", tglLahir: "2000-03-10", tempatTinggal: "Jakarta Selatan", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 91, foto: "./denisa.jpg" },
-            { id: 21, nama: "ASIS SISWANTO", tglLahir: "1989-10-10", tempatTinggal: "Jakarta", awalKontrak: "2026-04-01", akhirKontrak: "2026-12-31", kpi: 85, foto: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250" },
-            { id: 22, nama: "SEPTIAN ADE PUTRA", tglLahir: "1990-09-25", tempatTinggal: "Jakarta", awalKontrak: "2026-01-01", akhirKontrak: "2026-12-31", kpi: 82, foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=250" }
-        ];
+    <!-- Tabel Data -->
+    <div class="table-container">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>STASIUN</th>
+              <th>BRAND OLT</th>
+              <th>HOSTNAME</th>
+              <th>IP OLT</th>
+              <th>CATEGORY</th>
+              <th>TANGGAL</th>
+              <th>WAKTU DOWN</th>
+              <th>PROBLEM</th>
+              <th>ACTION</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel">
+            <tr>
+              <td colspan="11" style="text-align: center; padding: 40px; color: #94a3b8;">
+                Menghubungkan ke Google Sheets...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-        // Load / Initialize Storage
-        let employees = JSON.parse(localStorage.getItem("employees_db")) || initialEmployees;
+    <div class="last-update" id="waktu-update">Terakhir Diperbarui: -</div>
+  </div>
 
-        // Active State
-        let currentView = 'grid';
-        let tempPhotoData = '';
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-        // DOM Elements
-        const gridContainer = document.getElementById('container-grid');
-        const tableContainer = document.getElementById('container-table');
-        const tableBody = document.getElementById('table-body');
-        const emptyState = document.getElementById('empty-state');
-        const searchInput = document.getElementById('input-search');
-        const filterSelect = document.getElementById('select-filter');
+  <script>
+    const SPREADSHEET_ID = "1ALrR_In0bq_9fBM-irHLsSKO7sCq0r7_MaFZ70mdStY";
+    const GID = "676156381";
+    const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
 
-        // Modal Elements
-        const modalForm = document.getElementById('modal-form');
-        const modalTitle = document.getElementById('modal-title');
-        const employeeForm = document.getElementById('employee-form');
-        const formPhotoPreview = document.getElementById('form-photo-preview');
-        const formPhotoFile = document.getElementById('form-photo-file');
+    let mappedData = [];
+    let fpInstance = null;
+    let selectedStartDate = null;
+    let selectedEndDate = null;
 
-        const modalDetail = document.getElementById('modal-detail');
-        const detailCardContent = document.getElementById('detail-card-content');
+    document.addEventListener("DOMContentLoaded", function() {
+      fpInstance = flatpickr("#filter-date-range", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d M Y",
+        placeholder: "Pilih Rentang Tanggal...",
+        onChange: function(selectedDates) {
+          if (selectedDates.length === 1) {
+            selectedStartDate = setZeroTime(selectedDates[0]);
+            selectedEndDate = setZeroTime(selectedDates[0]);
+          } else if (selectedDates.length === 2) {
+            selectedStartDate = setZeroTime(selectedDates[0]);
+            selectedEndDate = setZeroTime(selectedDates[1]);
+          } else {
+            selectedStartDate = null;
+            selectedEndDate = null;
+          }
+          terapkanFilter();
+        }
+      });
+    });
 
-        // Helper Functions
-        function calculateDaysRemaining(endDateStr) {
-            const endDate = new Date(endDateStr);
-            const refDate = new Date('2026-10-12'); // Referensi sesuai tabel
-            const diffTime = endDate - refDate;
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    function setZeroTime(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    async function ambilData() {
+      try {
+        const respon = await fetch(FETCH_URL);
+        const teks = await respon.text();
+        const baris = parseCSV(teks);
+
+        if (baris.length < 2) return;
+
+        // 1. Cari Baris Header yang BENAR (Baris yang mengandung nama kolom utama)
+        let headerRowIndex = 0;
+        for (let i = 0; i < Math.min(baris.length, 5); i++) {
+          const checkLine = baris[i].map(c => c.toUpperCase());
+          if (checkLine.some(c => c.includes("STASIUN") || c.includes("BRAND") || c.includes("CATEGORY") || c.includes("TANGGAL"))) {
+            headerRowIndex = i;
+            break;
+          }
         }
 
-        function calculateAge(birthDateStr) {
-            const birthDate = new Date(birthDateStr);
-            const refDate = new Date('2026-10-12');
-            let age = refDate.getFullYear() - birthDate.getFullYear();
-            const m = refDate.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && refDate.getDate() < birthDate.getDate())) {
-                age--;
+        const headers = baris[headerRowIndex].map(h => h.trim().toUpperCase());
+
+        // 2. Petakan Indeks Kolom
+        const mapIdx = {
+          stasiun: headers.findIndex(h => h.includes("STASIUN") || h.includes("LOKASI")),
+          brand: headers.findIndex(h => h.includes("BRAND") || h.includes("MERK") || h.includes("VENDOR")),
+          hostname: headers.findIndex(h => h.includes("HOST")),
+          ip: headers.findIndex(h => h.includes("IP")),
+          category: headers.findIndex(h => h.includes("CAT") || h.includes("KATEGORI")),
+          tanggal: headers.findIndex(h => h.includes("TGL") || h.includes("TANGGAL") || h.includes("DATE")),
+          waktu: headers.findIndex(h => h.includes("WAKTU") || h.includes("JAM") || h.includes("TIME")),
+          problem: headers.findIndex(h => h.includes("PROB") || h.includes("MASALAH") || h.includes("GANGGUAN")),
+          action: headers.findIndex(h => h.includes("ACT") || h.includes("PENANGANAN") || h.includes("SOLUSI")),
+          status: headers.findIndex(h => h.includes("STAT"))
+        };
+
+        // Fallback jika header stasiun tidak ketemu
+        if (mapIdx.stasiun === -1) {
+          for (let col = 0; col < headers.length; col++) {
+            if (baris.slice(headerRowIndex + 1, headerRowIndex + 10).some(b => (b[col] || '').toUpperCase().startsWith("ST."))) {
+              mapIdx.stasiun = col;
+              break;
             }
-            return age;
+          }
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            return new Date(dateStr).toLocaleDateString('id-ID', options);
-        }
-
-        function saveToStorage() {
-            localStorage.setItem("employees_db", JSON.stringify(employees));
-            render();
-        }
-
-        // Render Cards & Table
-        function render() {
-            const query = searchInput.value.toLowerCase();
-            const filterVal = filterSelect.value;
-
-            const filtered = employees.filter(emp => {
-                const daysLeft = calculateDaysRemaining(emp.akhirKontrak);
-                const matchesSearch = emp.nama.toLowerCase().includes(query) || emp.tempatTinggal.toLowerCase().includes(query);
-                
-                let matchesFilter = true;
-                if (filterVal === 'safe') matchesFilter = daysLeft > 30;
-                else if (filterVal === 'warning') matchesFilter = daysLeft > 0 && daysLeft <= 30;
-                else if (filterVal === 'expired') matchesFilter = daysLeft <= 0;
-
-                return matchesSearch && matchesFilter;
-            });
-
-            // Update Header Stats
-            document.getElementById('stat-total').textContent = employees.length;
-            document.getElementById('stat-safe').textContent = employees.filter(e => calculateDaysRemaining(e.akhirKontrak) > 30).length;
-            document.getElementById('stat-warning').textContent = employees.filter(e => { const d = calculateDaysRemaining(e.akhirKontrak); return d > 0 && d <= 30; }).length;
-            document.getElementById('stat-expired').textContent = employees.filter(e => calculateDaysRemaining(e.akhirKontrak) <= 0).length;
-
-            if (filtered.length === 0) {
-                gridContainer.classList.add('hidden');
-                tableContainer.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-
-            if (currentView === 'grid') {
-                gridContainer.classList.remove('hidden');
-                tableContainer.classList.add('hidden');
-                renderGrid(filtered);
-            } else {
-                gridContainer.classList.add('hidden');
-                tableContainer.classList.remove('hidden');
-                renderTable(filtered);
-            }
-
-            lucide.createIcons();
-        }
-
-        function renderGrid(list) {
-            gridContainer.innerHTML = list.map(emp => {
-                const days = calculateDaysRemaining(emp.akhirKontrak);
-                const isExpired = days <= 0;
-                const isWarning = days > 0 && days <= 30;
-
-                let statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${days} Hari</span>`;
-                if (isExpired) statusBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${days} Hari</span>`;
-                else if (isWarning) statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${days} Hari</span>`;
-
-                return `
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 relative flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center space-x-3">
-                                <img src="${emp.foto}" alt="${emp.nama}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-100">
-                                <div>
-                                    <h3 class="font-bold text-slate-800 text-sm leading-snug hover:text-indigo-600 transition cursor-pointer" onclick="openDetail(${emp.id})">${emp.nama}</h3>
-                                    <p class="text-xs text-slate-500">${emp.tempatTinggal || 'Indonesia'}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <span class="text-slate-400 block text-[10px]">TANGGAL LAHIR</span>
-                                <span class="font-medium text-slate-700">${formatDate(emp.tglLahir)}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 block text-[10px]">SISA KONTRAK</span>
-                                ${statusBadge}
-                            </div>
-                            <div>
-                                <span class="text-slate-400 block text-[10px]">AWAL KONTRAK</span>
-                                <span class="font-medium text-slate-700">${formatDate(emp.awalKontrak)}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 block text-[10px]">AKHIR KONTRAK</span>
-                                <span class="font-medium text-slate-700">${formatDate(emp.akhirKontrak)}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center space-x-1 text-xs text-indigo-600 font-semibold">
-                            <i data-lucide="award" class="w-4 h-4"></i>
-                            <span>KPI: ${emp.kpi}</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="openEdit(${emp.id})" class="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-100 transition" title="Edit">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteEmployee(${emp.id})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition" title="Hapus">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        function renderTable(list) {
-            tableBody.innerHTML = list.map(emp => {
-                const days = calculateDaysRemaining(emp.akhirKontrak);
-                const isExpired = days <= 0;
-                const isWarning = days > 0 && days <= 30;
-
-                let statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${days} Hari</span>`;
-                if (isExpired) statusBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${days} Hari</span>`;
-                else if (isWarning) statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${days} Hari</span>`;
-
-                return `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="py-3 px-4 flex items-center space-x-3">
-                        <img src="${emp.foto}" alt="${emp.nama}" class="w-8 h-8 rounded-full object-cover">
-                        <span class="font-medium text-slate-800 hover:text-indigo-600 cursor-pointer" onclick="openDetail(${emp.id})">${emp.nama}</span>
-                    </td>
-                    <td class="py-3 px-4 text-xs text-slate-600">${formatDate(emp.tglLahir)} (${calculateAge(emp.tglLahir)} th)</td>
-                    <td class="py-3 px-4 text-xs text-slate-600">${emp.tempatTinggal || '-'}</td>
-                    <td class="py-3 px-4 text-xs text-slate-600">${formatDate(emp.awalKontrak)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-600">${formatDate(emp.akhirKontrak)}</td>
-                    <td class="py-3 px-4 text-xs">${statusBadge}</td>
-                    <td class="py-3 px-4 text-xs font-semibold text-indigo-600">${emp.kpi}</td>
-                    <td class="py-3 px-4 text-center">
-                        <div class="flex items-center justify-center space-x-2">
-                            <button onclick="openEdit(${emp.id})" class="text-slate-400 hover:text-indigo-600 p-1"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="deleteEmployee(${emp.id})" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                </tr>
-                `;
-            }).join('');
-        }
-
-        // Handle Image Upload File
-        formPhotoFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    tempPhotoData = evt.target.result;
-                    formPhotoPreview.src = tempPhotoData;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Open Modal Add
-        document.getElementById('btn-add-modal').addEventListener('click', () => {
-            modalTitle.textContent = "Tambah Karyawan Baru";
-            employeeForm.reset();
-            document.getElementById('form-id').value = '';
-            tempPhotoData = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=250";
-            formPhotoPreview.src = tempPhotoData;
-            showModal(modalForm);
-        });
-
-        // Open Modal Edit
-        window.openEdit = function(id) {
-            const emp = employees.find(e => e.id === id);
-            if (!emp) return;
-
-            modalTitle.textContent = "Edit Data & Foto Karyawan";
-            document.getElementById('form-id').value = emp.id;
-            document.getElementById('form-nama').value = emp.nama;
-            document.getElementById('form-tgl-lahir').value = emp.tglLahir;
-            document.getElementById('form-tempat-tinggal').value = emp.tempatTinggal;
-            document.getElementById('form-awal-kontrak').value = emp.awalKontrak;
-            document.getElementById('form-akhir-kontrak').value = emp.akhirKontrak;
-            document.getElementById('form-kpi').value = emp.kpi;
+        // 3. Olah Isi Data
+        mappedData = baris.slice(headerRowIndex + 1)
+          .filter(b => b.some(c => c.trim() !== ''))
+          .map(b => {
+            const rawStasiun = (mapIdx.stasiun !== -1 && b[mapIdx.stasiun]) ? b[mapIdx.stasiun].trim() : '-';
+            const rawTgl = (mapIdx.tanggal !== -1 && b[mapIdx.tanggal]) ? b[mapIdx.tanggal].trim() : '-';
             
-            tempPhotoData = emp.foto;
-            formPhotoPreview.src = tempPhotoData;
+            // Validasi apakah rawTgl benar-benar format tanggal
+            const parsedObjDate = parseStringDate(rawTgl);
 
-            showModal(modalForm);
-        };
+            return {
+              stasiun: rawStasiun,
+              brand: (mapIdx.brand !== -1 && b[mapIdx.brand]) ? b[mapIdx.brand].trim() : '-',
+              hostname: (mapIdx.hostname !== -1 && b[mapIdx.hostname]) ? b[mapIdx.hostname].trim() : '-',
+              ip: (mapIdx.ip !== -1 && b[mapIdx.ip]) ? b[mapIdx.ip].trim() : '-',
+              category: (mapIdx.category !== -1 && b[mapIdx.category]) ? b[mapIdx.category].trim() : '-',
+              tanggal: parsedObjDate ? rawTgl : '-', // Jika bukan tanggal valid, ganti '-'
+              dateObj: parsedObjDate,
+              waktu: (mapIdx.waktu !== -1 && b[mapIdx.waktu]) ? b[mapIdx.waktu].trim() : '-',
+              problem: (mapIdx.problem !== -1 && b[mapIdx.problem]) ? b[mapIdx.problem].trim() : '-',
+              action: (mapIdx.action !== -1 && b[mapIdx.action]) ? b[mapIdx.action].trim() : '-',
+              status: (mapIdx.status !== -1 && b[mapIdx.status]) ? b[mapIdx.status].trim() : 'DOWN'
+            };
+          })
+          .filter(item => item.stasiun !== '-' || item.problem !== '-'); // Buang baris sampah/kosong
 
-        // Form Submit Save
-        employeeForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('form-id').value;
-            const nama = document.getElementById('form-nama').value;
-            const tglLahir = document.getElementById('form-tgl-lahir').value;
-            const tempatTinggal = document.getElementById('form-tempat-tinggal').value;
-            const awalKontrak = document.getElementById('form-awal-kontrak').value;
-            const akhirKontrak = document.getElementById('form-akhir-kontrak').value;
-            const kpi = Number(document.getElementById('form-kpi').value);
+        updateDropdowns();
+        terapkanFilter();
 
-            if (id) {
-                // Update
-                const index = employees.findIndex(e => e.id == id);
-                if (index !== -1) {
-                    employees[index] = { ...employees[index], nama, tglLahir, tempatTinggal, awalKontrak, akhirKontrak, kpi, foto: tempPhotoData };
-                }
-            } else {
-                // Insert Baru
-                const newEmp = {
-                    id: Date.now(),
-                    nama,
-                    tglLahir,
-                    tempatTinggal,
-                    awalKontrak,
-                    akhirKontrak,
-                    kpi,
-                    foto: tempPhotoData
-                };
-                employees.push(newEmp);
-            }
+        const skrg = new Date().toLocaleTimeString('id-ID');
+        document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg;
 
-            saveToStorage();
-            hideModal(modalForm);
-        });
+      } catch (err) {
+        console.error("Gagal narik data:", err);
+      }
+    }
 
-        // Delete Employee
-        window.deleteEmployee = function(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus data karyawan ini?")) {
-                employees = employees.filter(e => e.id !== id);
-                saveToStorage();
-            }
-        };
+    // Parser Tanggal yang Ketat
+    function parseStringDate(str) {
+      if (!str || str === '-' || str.length > 25) return null;
 
-        // Open Detail
-        window.openDetail = function(id) {
-            const emp = employees.find(e => e.id === id);
-            if (!emp) return;
+      // Cek pattern '01-Nov-25' / '01-Nov-2025'
+      const partsDash = str.split('-');
+      if (partsDash.length === 3) {
+        const day = parseInt(partsDash[0], 10);
+        const monthStr = partsDash[1];
+        let year = parseInt(partsDash[2], 10);
+        if (!isNaN(day) && !isNaN(year)) {
+          if (year < 100) year += 2000;
+          const monthMap = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+          const month = monthMap[monthStr.toLowerCase().substring(0,3)];
+          if (month !== undefined) {
+            return new Date(year, month, day);
+          }
+        }
+      }
 
-            const days = calculateDaysRemaining(emp.akhirKontrak);
-            const age = calculateAge(emp.tglLahir);
+      // Cek pattern standard 'YYYY-MM-DD' atau 'MM/DD/YYYY'
+      const d = new Date(str);
+      if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+        d.setHours(0,0,0,0);
+        return d;
+      }
 
-            detailCardContent.innerHTML = `
-                <div class="bg-indigo-600 p-6 text-white text-center relative">
-                    <img src="${emp.foto}" alt="${emp.nama}" class="w-20 h-20 rounded-full object-cover border-4 border-white mx-auto shadow-md">
-                    <h3 class="text-lg font-bold mt-2">${emp.nama}</h3>
-                    <p class="text-xs text-indigo-200">${emp.tempatTinggal || 'Indonesia'}</p>
-                </div>
-                <div class="p-6 space-y-4 text-xs text-slate-600">
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="font-medium text-slate-400">Tanggal Lahir</span>
-                        <span class="font-semibold text-slate-800">${formatDate(emp.tglLahir)} (${age} tahun)</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="font-medium text-slate-400">Awal Kontrak</span>
-                        <span class="font-semibold text-slate-800">${formatDate(emp.awalKontrak)}</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="font-medium text-slate-400">Akhir Kontrak</span>
-                        <span class="font-semibold text-slate-800">${formatDate(emp.akhirKontrak)}</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="font-medium text-slate-400">Sisa Kontrak</span>
-                        <span class="font-bold ${days <= 0 ? 'text-rose-600' : 'text-emerald-600'}">${days} Hari</span>
-                    </div>
-                    <div class="flex justify-between border-b pb-2">
-                        <span class="font-medium text-slate-400">Nilai KPI</span>
-                        <span class="font-bold text-indigo-600 text-sm">${emp.kpi} / 100</span>
-                    </div>
-                </div>
-            `;
-            showModal(modalDetail);
-        };
+      return null;
+    }
 
-        // Modal Utility
-        function showModal(el) {
-            el.classList.remove('hidden');
-            setTimeout(() => {
-                el.classList.remove('opacity-0');
-                el.children[0].classList.remove('scale-95');
-            }, 10);
+    function updateDropdowns() {
+      const selectStasiun = document.getElementById("filter-stasiun");
+      const selectCategory = document.getElementById("filter-category");
+
+      const currentStasiun = selectStasiun.value;
+      const currentCategory = selectCategory.value;
+
+      const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
+      selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
+        stasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
+
+      const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
+      selectCategory.innerHTML = '<option value="">Semua Category</option>' + 
+        categoryUnik.map(c => `<option value="${c}" ${c === currentCategory ? 'selected' : ''}>${c}</option>`).join('');
+    }
+
+    function terapkanFilter() {
+      const kw = document.getElementById("search-input").value.toLowerCase();
+      const stasiun = document.getElementById("filter-stasiun").value;
+      const category = document.getElementById("filter-category").value;
+
+      const hasil = mappedData.filter(item => {
+        const cocokKw = Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(kw));
+        const cocokStasiun = !stasiun || item.stasiun === stasiun;
+        const cocokCategory = !category || item.category === category;
+
+        let cocokTanggal = true;
+        if (selectedStartDate && selectedEndDate) {
+          if (item.dateObj) {
+            cocokTanggal = item.dateObj >= selectedStartDate && item.dateObj <= selectedEndDate;
+          } else {
+            cocokTanggal = false; // Jika di-filter tanggal, sembunyikan baris yang tidak punya tanggal valid
+          }
         }
 
-        function hideModal(el) {
-            el.classList.add('opacity-0');
-            el.children[0].classList.add('scale-95');
-            setTimeout(() => {
-                el.classList.add('hidden');
-            }, 200);
+        return cocokKw && cocokStasiun && cocokCategory && cocokTanggal;
+      });
+
+      renderTabel(hasil);
+    }
+
+    function resetFilter() {
+      document.getElementById("search-input").value = "";
+      document.getElementById("filter-stasiun").value = "";
+      document.getElementById("filter-category").value = "";
+      
+      if (fpInstance) {
+        fpInstance.clear();
+      }
+      selectedStartDate = null;
+      selectedEndDate = null;
+
+      terapkanFilter();
+    }
+
+    function renderTabel(data) {
+      const tbody = document.getElementById("isi-tabel");
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok dengan filter.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      data.forEach((item, idx) => {
+        let statusBadge = `<span class="badge badge-down">${item.status}</span>`;
+        if (/progress|penanganan/i.test(item.status)) {
+          statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
+        } else if (/resolved|clear|up|selesai/i.test(item.status)) {
+          statusBadge = `<span class="badge badge-resolved">${item.status}</span>`;
         }
 
-        document.getElementById('btn-close-modal').addEventListener('click', () => hideModal(modalForm));
-        document.getElementById('btn-cancel-modal').addEventListener('click', () => hideModal(modalForm));
-        document.getElementById('btn-close-detail').addEventListener('click', () => hideModal(modalDetail));
+        html += `<tr>
+          <td>${idx + 1}</td>
+          <td><span class="stasiun-tag">${item.stasiun}</span></td>
+          <td><span class="brand-tag">${item.brand}</span></td>
+          <td><b>${item.hostname}</b></td>
+          <td><span class="ip-code">${item.ip}</span></td>
+          <td>${item.category}</td>
+          <td><b>${item.tanggal}</b></td>
+          <td>${item.waktu}</td>
+          <td>${item.problem}</td>
+          <td>${item.action}</td>
+          <td>${statusBadge}</td>
+        </tr>`;
+      });
 
-        // Switch Views
-        document.getElementById('view-grid').addEventListener('click', () => {
-            currentView = 'grid';
-            render();
-        });
-        document.getElementById('view-table').addEventListener('click', () => {
-            currentView = 'table';
-            render();
-        });
+      tbody.innerHTML = html;
+    }
 
-        // Search & Filter Events
-        searchInput.addEventListener('input', render);
-        filterSelect.addEventListener('change', render);
+    function parseCSV(text) {
+      let lines = text.split('\n');
+      return lines.map(line => {
+        let regex = /(?:\"([^\"]*)\"|([^,]+))/g;
+        let matches = [];
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+          matches.push((match[1] || match[2] || '').trim().replace(/^"|"$/g, ''));
+        }
+        return matches;
+      });
+    }
 
-        // Initial Render
-        render();
-    </script>
+    ambilData();
+    setInterval(ambilData, 10000);
+  </script>
+
 </body>
 </html>
