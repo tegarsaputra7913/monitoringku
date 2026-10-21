@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoring Status OLT Down Stasiun</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Flatpickr Date Picker CSS (Dark Theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
+  <!-- Chart.js & Datalabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+    body { background-color: #0b1329; color: #f8fafc; padding: 24px; min-height: 100vh; }
+    .container { max-width: 1800px; margin: 0 auto; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .title-group h1 { font-size: 24px; font-weight: 700; color: #ffffff; }
+    .title-group p { font-size: 14px; color: #94a3b8; margin-top: 4px; }
+    
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .status-badge { background: #182238; border: 1px solid #2e3d5c; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.9); } }
+
+    .btn-add { background: #38bdf8; color: #0b1329; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-add:hover { background: #0284c7; color: #ffffff; }
+
+    /* Panel Filter Grid */
+    .filter-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: end; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-group label { font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; cursor: pointer; }
+    .filter-control:focus { border-color: #38bdf8; }
+    
+    .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; height: 40px; }
+    .btn-reset:hover { background: rgba(239, 68, 68, 0.3); }
+
+    .active-filter-badge { background: rgba(56, 189, 248, 0.2); border: 1px dashed #38bdf8; color: #38bdf8; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; }
+
+    .dashboard-panel { display: flex; flex-direction: column; gap: 20px; margin-bottom: 24px; }
+    .chart-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; padding: 20px; position: relative; }
+    .chart-title { font-size: 13px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; }
+    @media (max-width: 1200px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    .counter-box { position: absolute; top: 16px; right: 20px; background: #eab308; color: #0b1329; border-radius: 8px; padding: 6px 16px; text-align: center; }
+    .counter-box .num { font-size: 20px; font-weight: 800; }
+    .counter-box .lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+
+    .pie-box { height: 260px; position: relative; }
+
+    /* Matriks SLA Table */
+    .sla-table-container { margin-top: 16px; overflow-x: auto; }
+    .sla-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .sla-table th { background: #0f172a; color: #38bdf8; padding: 10px; border: 1px solid #2e3d5c; text-align: center; font-weight: 700; }
+    .sla-table td { padding: 10px; border: 1px solid #2e3d5c; text-align: center; color: #f8fafc; }
+    .sla-table tr:hover { background: #1f2d4a; }
+    .highlight-cell { background: rgba(56, 189, 248, 0.1); font-weight: bold; color: #38bdf8; }
+
+    /* Table Main */
+    .table-container { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background-color: #0f172a; color: #94a3b8; font-weight: 600; padding: 16px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid #2e3d5c; white-space: nowrap; }
+    td { padding: 14px 16px; border-bottom: 1px solid #2e3d5c; color: #cbd5e1; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #1f2d4a; }
+
+    .stasiun-tag { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-block; white-space: nowrap; }
+    .brand-tag { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; }
+    .duration-tag { background: rgba(251, 146, 60, 0.15); color: #fb923c; border: 1px solid rgba(251, 146, 60, 0.3); padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; white-space: nowrap; }
+
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; text-align: center; }
+    .badge-down { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-resolved { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+    .last-update { font-size: 12px; color: #64748b; text-align: right; margin-top: 16px; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; width: 100%; max-width: 650px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #2e3d5c; padding-bottom: 12px; }
+    .modal-header h2 { font-size: 18px; color: #ffffff; }
+    .close-modal { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .form-group-full { grid-column: span 2; }
+    .form-group label { display: block; font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px; }
+    .form-control { width: 100%; background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
+    .form-control:focus { border-color: #38bdf8; }
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn-cancel { background: #334155; color: #f8fafc; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+    .btn-submit { background: #38bdf8; color: #0b1329; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .flatpickr-calendar { background: #182238 !important; border: 1px solid #2e3d5c !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
+    .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #38bdf8 !important; border-color: #38bdf8 !important; color: #0b1329 !important; font-weight: bold; }
+    .flatpickr-day.inRange { background: rgba(56, 189, 248, 0.2) !important; box-shadow: -5px 0 0 rgba(56, 189, 248, 0.2), 5px 0 0 rgba(56, 189, 248, 0.2) !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="title-group">
+        <h1>Monitoring Status OLT Down</h1>
+        <p>Sistem Pemantauan Gangguan OLT Stasiun Real-Time</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-add" onclick="bukaModal()">+ Tambah Data OLT</button>
+        <div class="status-badge">
+          <span class="dot"></span>
+          <span id="sync-status">Live Sync (10s)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Filter -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label>Cari Kata Kunci</label>
+        <input type="text" id="search-input" class="filter-control" placeholder="Cari Stasiun, Problem, Action..." oninput="terapkanFilter()">
+      </div>
+
+      <div class="filter-group">
+        <label>Pilih Stasiun</label>
+        <select id="filter-stasiun" class="filter-control" onchange="terapkanFilter()">
+          <option value="">Semua Stasiun</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Filter Rentang Tanggal</label>
+        <input type="text" id="filter-date-range" class="filter-control" placeholder="Pilih Tanggal / Rentang..." readonly>
+      </div>
+
+      <div class="filter-group">
+        <label>Category</label>
+        <select id="filter-category" class="filter-control" onchange="terapkanFilter()">
+          <option value="">Semua Category</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <button class="btn-reset" onclick="resetFilter()">Reset Filter</button>
+      </div>
+    </div>
+
+    <!-- Indikator Banner Filter Aktif -->
+    <div id="active-filter-badge" class="active-filter-badge">
+      <span id="active-filter-text">Filter Diagram Aktif: -</span>
+      <button style="background: rgba(239, 68, 68, 0.2); border: 1px solid #f87171; color: #f87171; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;" onclick="resetChartClickFilter()">✕ Normalkan Diagram (Reset)</button>
+    </div>
+
+    <div class="dashboard-panel">
+      <!-- 1. GRAFIK TREN HARIAN ATAS -->
+      <div class="chart-card">
+        <div class="chart-title">Tren Jumlah Gangguan Per Tanggal (Klik titik untuk filter / klik ulang untuk normal)</div>
+        <div class="counter-box">
+          <div class="lbl">Record Count</div>
+          <div class="num" id="total-record-count">0</div>
+        </div>
+        <div style="height: 220px; position: relative; margin-top: 10px;">
+          <canvas id="chartTrendHarian"></canvas>
+        </div>
+      </div>
+
+      <!-- 2. GRID 3 CHART BAWAH -->
+      <div class="bottom-grid">
+        <div class="chart-card">
+          <div class="chart-title" style="text-align: center;">Category (Klik pie)</div>
+          <div class="pie-box">
+            <canvas id="pieChartCategory"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" style="text-align: center;">Top 5 Stasiun (Klik batang)</div>
+          <div style="height: 260px; position: relative;">
+            <canvas id="barTopStasiun"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" style="text-align: center;">Waktu Solving SLA (Klik pie)</div>
+          <div class="pie-box">
+            <canvas id="pieChartSLA"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. TABEL MATRIKS SLA SOLVING -->
+      <div class="chart-card">
+        <div class="chart-title">Total Problem / Waktu Solving SLA</div>
+        <div class="sla-table-container">
+          <table class="sla-table">
+            <thead>
+              <tr id="sla-table-header">
+                <th>WAKTU SOLVING</th>
+                <th>Grand Total</th>
+              </tr>
+            </thead>
+            <tbody id="sla-table-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel Data Utama -->
+    <div class="table-container">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>STASIUN</th>
+              <th>CATEGORY</th>
+              <th>BRAND OLT</th>
+              <th>TANGGAL DOWN</th>
+              <th>WAKTU DOWN</th>
+              <th>TANGGAL UP</th>
+              <th>WAKTU UP</th>
+              <th>DURASI</th>
+              <th>PROBLEM</th>
+              <th>ACTION</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel">
+            <tr>
+              <td colspan="12" style="text-align: center; padding: 40px; color: #94a3b8;">
+                Menghubungkan ke Google Sheets...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="last-update" id="waktu-update">Terakhir Diperbarui: -</div>
+  </div>
+
+  <!-- Modal Pop-up Input Data Baru -->
+  <div class="modal-overlay" id="modal-form">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Input Gangguan OLT Baru</h2>
+        <button class="close-modal" onclick="tutupModal()">&times;</button>
+      </div>
+      <form id="form-olt" onsubmit="simpanData(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Stasiun</label>
+            <input type="text" id="input-stasiun" class="form-control" placeholder="Contoh: ST. ARJASA" required>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="input-category" class="form-control" required>
+              <option value="FO Cut">FO Cut</option>
+              <option value="Power Issue">Power Issue</option>
+              <option value="Perangkat">Perangkat</option>
+              <option value="Impact Activity">Impact Activity</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Brand OLT</label>
+            <input type="text" id="input-brand" class="form-control" placeholder="Contoh: HUAWEI / FIBERHOME / NOKIA">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="input-status" class="form-control" required>
+              <option value="DOWN">DOWN</option>
+              <option value="PROGRESS">PROGRESS</option>
+              <option value="CLOSE">CLOSE</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tanggal Down</label>
+            <input type="text" id="input-tgl-down" class="form-control" placeholder="Contoh: 7 October 2026" required>
+          </div>
+          <div class="form-group">
+            <label>Waktu Down</label>
+            <input type="text" id="input-waktu-down" class="form-control" placeholder="Contoh: 2026-10-07 10:07:09" required>
+          </div>
+          <div class="form-group form-group-full">
+            <label>Problem / Masalah</label>
+            <textarea id="input-problem" class="form-control" rows="2" placeholder="Deskripsi problem..."></textarea>
+          </div>
+          <div class="form-group form-group-full">
+            <label>Action / Penanganan</label>
+            <textarea id="input-action" class="form-control" rows="2" placeholder="Tindakan penanganan..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="tutupModal()">Batal</button>
+          <button type="submit" id="btn-submit-form" class="btn-submit">Simpan ke Google Sheets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <script>
+    const SPREADSHEET_ID = "1ALrR_In0bq_9fBM-irHLsSKO7sCq0r7_MaFZ70mdStY";
+    const GID = "676156381";
+    const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
+    
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNltmB5Jfif7uVU0DPSh1qHN4gsekpne4CBTYNm5XyNp10t_OOJ3n34w7inkps0v7LVg/exec";
+
+    let mappedData = [];
+    let fpInstance = null;
+    let selectedStartDate = null;
+    let selectedEndDate = null;
+
+    // State Penyimpan Klik Filter Chart
+    let chartClickFilter = { type: null, value: null };
+
+    let chartTrendHarianInstance = null;
+    let pieCategoryInstance = null;
+    let barTopStasiunInstance = null;
+    let pieSLAInstance = null;
+
+    Chart.register(ChartDataLabels);
+
+    document.addEventListener("DOMContentLoaded", function() {
+      fpInstance = flatpickr("#filter-date-range", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d M Y",
+        placeholder: "Pilih Rentang Tanggal...",
+        onChange: function(selectedDates) {
+          if (selectedDates.length === 1) {
+            selectedStartDate = setZeroTime(selectedDates[0]);
+            selectedEndDate = setZeroTime(selectedDates[0]);
+          } else if (selectedDates.length === 2) {
+            selectedStartDate = setZeroTime(selectedDates[0]);
+            selectedEndDate = setZeroTime(selectedDates[1]);
+          } else {
+            selectedStartDate = null;
+            selectedEndDate = null;
+          }
+          terapkanFilter();
+        }
+      });
+
+      const now = new Date();
+      const optionsTgl = { day: '2-digit', month: 'long', year: 'numeric' };
+      document.getElementById('input-tgl-down').value = now.toLocaleDateString('en-GB', optionsTgl);
+      
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('input-waktu-down').value = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+    });
+
+    function setZeroTime(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function bukaModal() { document.getElementById("modal-form").style.display = "flex"; }
+    function tutupModal() { document.getElementById("modal-form").style.display = "none"; }
+
+    async function simpanData(e) {
+      e.preventDefault();
+      const btnSubmit = document.getElementById("btn-submit-form");
+      btnSubmit.innerText = "Mengirim...";
+      btnSubmit.disabled = true;
+
+      const payload = {
+        stasiun: document.getElementById("input-stasiun").value,
+        category: document.getElementById("input-category").value,
+        brand: document.getElementById("input-brand").value,
+        tanggalDown: document.getElementById("input-tgl-down").value,
+        waktuDown: document.getElementById("input-waktu-down").value,
+        status: document.getElementById("input-status").value,
+        problem: document.getElementById("input-problem").value,
+        action: document.getElementById("input-action").value
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        alert("Data berhasil disimpan ke Google Sheets!");
+        tutupModal();
+        document.getElementById("form-olt").reset();
+        setTimeout(ambilData, 2000);
+
+      } catch (err) {
+        console.error("Gagal simpan:", err);
+        alert("Gagal mengirim data. Silakan coba lagi.");
+      } finally {
+        btnSubmit.innerText = "Simpan ke Google Sheets";
+        btnSubmit.disabled = false;
+      }
+    }
+
+    function ekstrakJam(str) {
+      if (!str || str === '-' || str.trim() === '') return '-';
+      str = str.trim();
+
+      if (str.includes(' ')) {
+        const parts = str.split(/\s+/);
+        for (let p of parts) {
+          if (p.includes(':')) return p;
+        }
+      }
+
+      if (str.includes(':')) return str;
+
+      const num = parseFloat(str);
+      if (!isNaN(num) && num > 0 && num < 1) {
+        const totalDetik = Math.round(num * 86400);
+        const hh = String(Math.floor(totalDetik / 3600)).padStart(2, '0');
+        const mm = String(Math.floor((totalDetik % 3600) / 60)).padStart(2, '0');
+        const ss = String(totalDetik % 60).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+      }
+
+      return str;
+    }
+
+    function hitungMenitDurasi(strDurasi) {
+      if (!strDurasi || strDurasi === '-' || strDurasi.trim() === '') return 0;
+      strDurasi = strDurasi.trim();
+
+      if (strDurasi.includes(':')) {
+        const parts = strDurasi.split(':').map(Number);
+        if (parts.length === 3) {
+          return (parts[0] * 60) + parts[1] + (parts[2] / 60);
+        } else if (parts.length === 2) {
+          return (parts[0] * 60) + parts[1];
+        }
+      }
+
+      const jamMatch = strDurasi.match(/(\d+)\s*(jam|hr|hour)/i);
+      const menitMatch = strDurasi.match(/(\d+)\s*(menit|min)/i);
+      let total = 0;
+      if (jamMatch) total += parseInt(jamMatch[1], 10) * 60;
+      if (menitMatch) total += parseInt(menitMatch[1], 10);
+
+      return total;
+    }
+
+    function parseStringDate(str) {
+      if (!str || str === '-' || str.trim() === '') return null;
+      str = str.trim();
+
+      if (str.includes(' ') && str.includes(':')) {
+        str = str.split(' ')[0];
+      }
+
+      const monthMap = {
+        january:0, jan:0, february:1, feb:1, march:2, mar:2, april:3, apr:3,
+        may:4, june:5, jun:5, july:6, jul:6, august:7, aug:7,
+        september:8, sep:8, oct:9, october:9, november:10, nov:10, december:11, dec:11
+      };
+
+      const parts = str.split(/[\s\-]+/);
+      if (parts.length === 3) {
+        const d = parseInt(parts[0], 10);
+        const mStr = parts[1].toLowerCase();
+        let y = parseInt(parts[2], 10);
+
+        if (!isNaN(d) && !isNaN(y) && monthMap[mStr] !== undefined) {
+          if (y < 100) y += 2000;
+          return new Date(y, monthMap[mStr], d);
+        }
+      }
+
+      const partsSlash = str.split('/');
+      if (partsSlash.length === 3) {
+        const m = parseInt(partsSlash[0], 10) - 1;
+        const d = parseInt(partsSlash[1], 10);
+        let y = parseInt(partsSlash[2], 10);
+        if (y < 100) y += 2000;
+        if (!isNaN(m) && !isNaN(d) && !isNaN(y)) {
+          return new Date(y, m, d);
+        }
+      }
+
+      const dt = new Date(str);
+      if (!isNaN(dt.getTime())) {
+        dt.setHours(0,0,0,0);
+        return dt;
+      }
+
+      return null;
+    }
+
+    async function ambilData() {
+      try {
+        const respon = await fetch(FETCH_URL);
+        const teks = await respon.text();
+        const baris = parseCSV(teks);
+
+        if (baris.length < 2) return;
+
+        let startRowIndex = 1;
+        for (let i = 0; i < Math.min(baris.length, 10); i++) {
+          if (baris[i] && baris[i][0] && !isNaN(baris[i][0].trim())) {
+            startRowIndex = i;
+            break;
+          }
+        }
+
+        mappedData = baris.slice(startRowIndex)
+          .filter(b => b.length > 6 && b[0] && b[0].trim() !== '')
+          .map((b, idx) => {
+            const rawNo = b[0] ? b[0].trim() : (idx + 1);
+            let rawTglDown = b[1] ? b[1].trim() : '-';
+            let rawWaktuDown = b[2] ? ekstrakJam(b[2]) : '-';
+            let rawTglUp = b[3] ? b[3].trim() : '-';
+            let rawWaktuUp = b[4] ? ekstrakJam(b[4]) : '-';
+            const rawDurasiSheet = b[5] ? ekstrakJam(b[5]) : '-';
+            
+            const rawStasiun = b[7] ? b[7].trim() : '-';
+            const rawCategory = b[8] ? b[8].trim() : '-';
+            const rawBrand = b[9] ? b[9].trim() : '-';
+            const rawProblem = b[10] ? b[10].trim() : '-';
+            const rawAction = b[11] ? b[11].trim() : '-';
+            const rawStatus = b[12] ? b[12].trim() : 'DOWN';
+
+            const parsedObjDate = parseStringDate(rawTglDown);
+            const durasiMenit = hitungMenitDurasi(rawDurasiSheet);
+
+            return {
+              no: rawNo,
+              stasiun: rawStasiun,
+              category: rawCategory,
+              brand: rawBrand,
+              tanggalDown: rawTglDown,
+              waktuDown: rawWaktuDown,
+              tanggalUp: rawTglUp,
+              waktuUp: rawWaktuUp,
+              durasi: rawDurasiSheet,
+              durasiMenit: durasiMenit,
+              dateObj: parsedObjDate,
+              problem: rawProblem,
+              action: rawAction,
+              status: rawStatus
+            };
+          });
+
+        updateDropdowns();
+        terapkanFilter();
+
+        const skrg = new Date().toLocaleTimeString('id-ID');
+        document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg;
+
+      } catch (err) {
+        console.error("Gagal narik data:", err);
+      }
+    }
+
+    function updateDropdowns() {
+      const selectStasiun = document.getElementById("filter-stasiun");
+      const selectCategory = document.getElementById("filter-category");
+
+      const currentStasiun = selectStasiun.value;
+      const currentCategory = selectCategory.value;
+
+      const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
+      selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
+        stasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
+
+      const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
+      selectCategory.innerHTML = '<option value="">Semua Category</option>' + 
+        categoryUnik.map(c => `<option value="${c}" ${c === currentCategory ? 'selected' : ''}>${c}</option>`).join('');
+    }
+
+    function handleChartClick(type, value) {
+      // FITUR TOGGLE: Jika mengeklik item yang sama, maka kodenya akan reset/normal lagi
+      if (chartClickFilter.type === type && chartClickFilter.value === value) {
+        chartClickFilter = { type: null, value: null };
+        document.getElementById('active-filter-badge').style.display = 'none';
+      } else {
+        chartClickFilter = { type: type, value: value };
+        document.getElementById('active-filter-text').innerText = `Filter Diagram Aktif: ${type.toUpperCase()} (${value})`;
+        document.getElementById('active-filter-badge').style.display = 'flex';
+      }
+      terapkanFilter();
+    }
+
+    function resetChartClickFilter() {
+      chartClickFilter = { type: null, value: null };
+      document.getElementById('active-filter-badge').style.display = 'none';
+      terapkanFilter();
+    }
+
+    function terapkanFilter() {
+      const kw = document.getElementById("search-input").value.toLowerCase();
+      const stasiun = document.getElementById("filter-stasiun").value;
+      const category = document.getElementById("filter-category").value;
+
+      const hasil = mappedData.filter(item => {
+        const cocokKw = Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(kw));
+        const cocokStasiun = !stasiun || item.stasiun === stasiun;
+        const cocokCategory = !category || item.category === category;
+
+        let cocokTanggal = true;
+        if (selectedStartDate && selectedEndDate) {
+          if (item.dateObj) {
+            const start = setZeroTime(selectedStartDate);
+            const end = setZeroTime(selectedEndDate);
+            const target = setZeroTime(item.dateObj);
+            cocokTanggal = target >= start && target <= end;
+          } else {
+            cocokTanggal = false;
+          }
+        }
+
+        // PENYARINGAN BERDASARKAN HASIL KLIK DIAGRAM
+        let cocokChart = true;
+        if (chartClickFilter.type === 'tanggal') {
+          cocokChart = item.tanggalDown === chartClickFilter.value;
+        } else if (chartClickFilter.type === 'category') {
+          cocokChart = item.category === chartClickFilter.value;
+        } else if (chartClickFilter.type === 'stasiun') {
+          cocokChart = item.stasiun === chartClickFilter.value;
+        } else if (chartClickFilter.type === 'sla') {
+          if (chartClickFilter.value === '< 4 Hour') {
+            cocokChart = item.durasiMenit > 0 && item.durasiMenit <= 240;
+          } else if (chartClickFilter.value === '> 4 Hour') {
+            cocokChart = item.durasiMenit > 240;
+          }
+        }
+
+        return cocokKw && cocokStasiun && cocokCategory && cocokTanggal && cocokChart;
+      });
+
+      renderTabel(hasil);
+      updateAnalytics(hasil);
+    }
+
+    function resetFilter() {
+      document.getElementById("search-input").value = "";
+      document.getElementById("filter-stasiun").value = "";
+      document.getElementById("filter-category").value = "";
+      
+      if (fpInstance) { fpInstance.clear(); }
+      selectedStartDate = null;
+      selectedEndDate = null;
+
+      resetChartClickFilter();
+    }
+
+    function renderTabel(data) {
+      const tbody = document.getElementById("isi-tabel");
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok dengan filter.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      data.forEach((item) => {
+        let statusBadge = `<span class="badge badge-down">${item.status}</span>`;
+        if (/progress|penanganan/i.test(item.status)) {
+          statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
+        } else if (/resolved|clear|close|up|selesai/i.test(item.status)) {
+          statusBadge = `<span class="badge badge-resolved">${item.status}</span>`;
+        }
+
+        html += `<tr>
+          <td>${item.no}</td>
+          <td><span class="stasiun-tag">${item.stasiun}</span></td>
+          <td>${item.category}</td>
+          <td><span class="brand-tag">${item.brand}</span></td>
+          <td><b>${item.tanggalDown}</b></td>
+          <td>${item.waktuDown}</td>
+          <td><b style="color: #4ade80;">${item.tanggalUp}</b></td>
+          <td style="color: #4ade80;">${item.waktuUp}</td>
+          <td><span class="duration-tag">⏳ ${item.durasi}</span></td>
+          <td>${item.problem}</td>
+          <td>${item.action}</td>
+          <td>${statusBadge}</td>
+        </tr>`;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function updateAnalytics(data) {
+      document.getElementById("total-record-count").innerText = data.length.toLocaleString('id-ID');
+
+      // 1. TREN HARIAN
+      const perTanggalMap = {};
+      data.forEach(d => {
+        const tgl = d.tanggalDown || 'Lainnya';
+        perTanggalMap[tgl] = (perTanggalMap[tgl] || 0) + 1;
+      });
+
+      const labelsTanggal = Object.keys(perTanggalMap);
+      const valuesTanggal = Object.values(perTanggalMap);
+
+      if (chartTrendHarianInstance) chartTrendHarianInstance.destroy();
+      const ctxTrend = document.getElementById('chartTrendHarian').getContext('2d');
+      chartTrendHarianInstance = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: labelsTanggal,
+          datasets: [
+            {
+              label: 'Record Count',
+              data: valuesTanggal,
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.3)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 6,
+              pointHoverRadius: 9,
+              pointBackgroundColor: '#38bdf8'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+              const index = activeElements[0].index;
+              handleChartClick('tanggal', labelsTanggal[index]);
+            } else {
+              resetChartClickFilter();
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: { align: 'top', color: '#38bdf8', font: { weight: 'bold', size: 10 } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#2e3d5c' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' } }
+          }
+        }
+      });
+
+      // 2. PIE CHART CATEGORY
+      const daftarKategori = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))];
+      const countsKategori = daftarKategori.map(kat => data.filter(d => d.category === kat).length);
+      const colorPalette = ['#38bdf8', '#fb923c', '#a855f7', '#22c55e', '#ef4444', '#eab308', '#ec4899'];
+
+      if (pieCategoryInstance) pieCategoryInstance.destroy();
+      const ctxPieCat = document.getElementById('pieChartCategory').getContext('2d');
+      pieCategoryInstance = new Chart(ctxPieCat, {
+        type: 'pie',
+        data: {
+          labels: daftarKategori,
+          datasets: [{ data: countsKategori, backgroundColor: colorPalette }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+              const index = activeElements[0].index;
+              handleChartClick('category', daftarKategori[index]);
+            } else {
+              resetChartClickFilter();
+            }
+          },
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } },
+            datalabels: {
+              color: '#ffffff',
+              font: { weight: 'bold', size: 10 },
+              formatter: (val, ctx) => {
+                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                return sum ? ((val * 100) / sum).toFixed(1) + "%" : "";
+              }
+            }
+          }
+        }
+      });
+
+      // 3. TOP 5 STASIUN (HORIZONTAL BAR)
+      const stasiunCountMap = {};
+      data.forEach(d => {
+        if (d.stasiun && d.stasiun !== '-' && d.stasiun !== '< 4 Hour' && d.stasiun !== '> 4 Hour') {
+          stasiunCountMap[d.stasiun] = (stasiunCountMap[d.stasiun] || 0) + 1;
+        }
+      });
+
+      const sortedStasiun = Object.entries(stasiunCountMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      const labelsTopStasiun = sortedStasiun.map(s => s[0]);
+      const valuesTopStasiun = sortedStasiun.map(s => s[1]);
+
+      if (barTopStasiunInstance) barTopStasiunInstance.destroy();
+      const ctxBarTop = document.getElementById('barTopStasiun').getContext('2d');
+      barTopStasiunInstance = new Chart(ctxBarTop, {
+        type: 'bar',
+        data: {
+          labels: labelsTopStasiun,
+          datasets: [{
+            label: 'Jumlah Gangguan',
+            data: valuesTopStasiun,
+            backgroundColor: '#0284c7',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+              const index = activeElements[0].index;
+              handleChartClick('stasiun', labelsTopStasiun[index]);
+            } else {
+              resetChartClickFilter();
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: { anchor: 'end', align: 'right', color: '#38bdf8', font: { weight: 'bold', size: 11 } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' } },
+            y: { ticks: { color: '#f8fafc', font: { size: 11, weight: 'bold' } }, grid: { display: false } }
+          }
+        }
+      });
+
+      // 4. PIE CHART SLA
+      let countUnder4h = 0;
+      let countOver4h = 0;
+
+      data.forEach(item => {
+        if (item.durasiMenit > 0 && item.durasiMenit <= 240) {
+          countUnder4h++;
+        } else if (item.durasiMenit > 240) {
+          countOver4h++;
+        }
+      });
+
+      if (pieSLAInstance) pieSLAInstance.destroy();
+      const ctxPieSLA = document.getElementById('pieChartSLA').getContext('2d');
+      pieSLAInstance = new Chart(ctxPieSLA, {
+        type: 'pie',
+        data: {
+          labels: ['< 4 Hour', '> 4 Hour'],
+          datasets: [{
+            data: [countUnder4h, countOver4h],
+            backgroundColor: ['#38bdf8', '#f87171']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+              const index = activeElements[0].index;
+              const selectedSLA = index === 0 ? '< 4 Hour' : '> 4 Hour';
+              handleChartClick('sla', selectedSLA);
+            } else {
+              resetChartClickFilter();
+            }
+          },
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } },
+            datalabels: {
+              color: '#ffffff',
+              font: { weight: 'bold', size: 10 },
+              formatter: (val, ctx) => {
+                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                return sum ? ((val * 100) / sum).toFixed(1) + "%" : "0%";
+              }
+            }
+          }
+        }
+      });
+
+      renderSLATable(data, daftarKategori, countUnder4h, countOver4h);
+    }
+
+    function renderSLATable(data, daftarKategori, totalUnder4h, totalOver4h) {
+      const headerTr = document.getElementById('sla-table-header');
+      const bodyTbody = document.getElementById('sla-table-body');
+
+      headerTr.innerHTML = `<th>WAKTU SOLVING</th>` + 
+        daftarKategori.map(k => `<th>${k}</th>`).join('') + 
+        `<th>Grand Total</th>`;
+
+      const rowUnder = daftarKategori.map(k => data.filter(d => d.category === k && d.durasiMenit > 0 && d.durasiMenit <= 240).length);
+      const rowOver = daftarKategori.map(k => data.filter(d => d.category === k && d.durasiMenit > 240).length);
+      const rowGrandTotal = daftarKategori.map(k => data.filter(d => d.category === k).length);
+
+      bodyTbody.innerHTML = `
+        <tr>
+          <td style="text-align: left; font-weight: bold;">&lt; 4 Hour</td>
+          ${rowUnder.map(val => `<td>${val}</td>`).join('')}
+          <td class="highlight-cell">${totalUnder4h}</td>
+        </tr>
+        <tr>
+          <td style="text-align: left; font-weight: bold;">&gt; 4 Hour</td>
+          ${rowOver.map(val => `<td>${val}</td>`).join('')}
+          <td class="highlight-cell">${totalOver4h}</td>
+        </tr>
+        <tr style="background: #0f172a; font-weight: bold;">
+          <td style="text-align: left; color: #38bdf8;">Grand Total</td>
+          ${rowGrandTotal.map(val => `<td style="color: #38bdf8;">${val}</td>`).join('')}
+          <td class="highlight-cell" style="color: #4ade80;">${data.length}</td>
+        </tr>
+      `;
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/);
+      return lines.map(line => {
+        const row = [];
+        let insideQuote = false;
+        let entry = '';
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            insideQuote = !insideQuote;
+          } else if (char === ',' && !insideQuote) {
+            row.push(entry.replace(/^"|"$/g, '').trim());
+            entry = '';
+          } else {
+            entry += char;
+          }
+        }
+        row.push(entry.replace(/^"|"$/g, '').trim());
+        return row;
+      });
+    }
+
+    ambilData();
+    setInterval(ambilData, 10000);
+  </script>
+
+</body>
+</html>
