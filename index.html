@@ -259,10 +259,12 @@
       </div>
       <form id="form-olt" onsubmit="simpanData(event)">
         <div class="form-grid">
-          <!-- Stasiun & Category -->
+          <!-- Stasiun (Dropdown Otomatis) & Category -->
           <div class="form-group">
             <label>Stasiun</label>
-            <input type="text" id="input-stasiun" class="form-control" placeholder="Contoh: ST. ARJASA" required>
+            <select id="input-stasiun" class="form-control" required>
+              <option value="">-- Pilih Stasiun --</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Category</label>
@@ -355,7 +357,7 @@
     
     // URL Deployment Apps Script
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymE8tMet42RtwkSbCNXETTYyVuzarK-ImgEYe2yxgwW7sOgX6WVGbXK6Ms2FHzu8SREQ/exec";
-    
+
     let mappedData = [];
     let fpInstance = null;
     let selectedStartDate = null;
@@ -733,14 +735,23 @@
     function updateDropdowns() {
       const selectStasiun = document.getElementById("filter-stasiun");
       const selectCategory = document.getElementById("filter-category");
+      const selectModalStasiun = document.getElementById("input-stasiun");
 
       const currentStasiun = selectStasiun.value;
       const currentCategory = selectCategory.value;
+      const currentModalStasiun = selectModalStasiun.value;
 
       const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
+      
+      // Update Dropdown Filter Stasiun
       selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
         stasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
 
+      // Update Dropdown Modal Input Stasiun
+      selectModalStasiun.innerHTML = '<option value="">-- Pilih Stasiun --</option>' + 
+        stasiunUnik.map(s => `<option value="${s}" ${s === currentModalStasiun ? 'selected' : ''}>${s}</option>`).join('');
+
+      // Update Dropdown Filter Category
       const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
       selectCategory.innerHTML = '<option value="">Semua Category</option>' + 
         categoryUnik.map(c => `<option value="${c}" ${c === currentCategory ? 'selected' : ''}>${c}</option>`).join('');
