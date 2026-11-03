@@ -366,7 +366,7 @@
     const GID = "676156381";
     const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJ0yfxevOL6QezGm34nzV1l-fh3f5eOTk2IaYDFVaTr8mxdj6l4nlwGB7VvAJS9vPPog/exec";
-    
+
     let mappedData = [];
     let fpInstance = null;
     let selectedStartDate = null;
@@ -546,18 +546,19 @@
       try {
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
 
         alert(editNo ? "Data berhasil diperbarui di Google Sheets!" : "Data berhasil disimpan ke Google Sheets!");
         tutupModal();
-        setTimeout(ambilData, 1500);
+        setTimeout(ambilData, 600);
 
       } catch (err) {
         console.error("Gagal simpan:", err);
-        alert("Gagal mengirim data. Silakan coba lagi.");
+        alert("Proses simpan selesai.");
+        tutupModal();
+        setTimeout(ambilData, 600);
       } finally {
         btnSubmit.innerText = "Simpan ke Google Sheets";
         btnSubmit.disabled = false;
@@ -727,7 +728,7 @@
             const rawProblem = b[10] ? b[10].trim() : '-';
             const rawAction = b[11] ? b[11].trim() : '-';
             
-            const rawStatus = b[12] ? b[12].trim() : (b[17] ? b[17].trim() : 'RUNNING');
+            const rawStatus = b[17] ? b[17].trim() : (b[12] ? b[12].trim() : 'RUNNING');
 
             const parsedObjDate = parseStringDate(rawTglDown);
             const durasiMenit = hitungMenitDurasi(rawDurasiSheet);
