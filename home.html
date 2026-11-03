@@ -80,7 +80,7 @@
     .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; text-align: center; }
     .badge-down { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
     .badge-progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-resolved { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .badge-resolved, .badge-running { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
 
     .last-update { font-size: 12px; color: #64748b; text-align: right; margin-top: 16px; }
 
@@ -259,7 +259,7 @@
       </div>
       <form id="form-olt" onsubmit="simpanData(event)">
         <div class="form-grid">
-          <!-- Stasiun (Dropdown Otomatis) & Category -->
+          <!-- Stasiun & Category -->
           <div class="form-group">
             <label>Stasiun</label>
             <select id="input-stasiun" class="form-control" required>
@@ -276,7 +276,7 @@
             </select>
           </div>
 
-          <!-- Brand & Status -->
+          <!-- Brand & Status (DOWN / RUNNING) -->
           <div class="form-group">
             <label>Brand OLT</label>
             <select id="input-brand" class="form-control" required>
@@ -292,8 +292,7 @@
             <label>Status</label>
             <select id="input-status" class="form-control" required>
               <option value="DOWN">DOWN</option>
-              <option value="PROGRESS">PROGRESS</option>
-              <option value="CLOSE">CLOSE</option>
+              <option value="RUNNING">RUNNING</option>
             </select>
           </div>
 
@@ -317,7 +316,7 @@
             <input type="text" id="input-tgl-up" class="form-control" placeholder="Terisi Otomatis" readonly>
           </div>
 
-          <!-- Durasi & Waktu Solving (SLA) -->
+          <!-- Durasi & SLA -->
           <div class="form-group">
             <label>Durasi (Auto)</label>
             <input type="text" id="input-durasi" class="form-control" placeholder="00:00:00" readonly>
@@ -354,16 +353,12 @@
     const SPREADSHEET_ID = "1ALrR_In0bq_9fBM-irHLsSKO7sCq0r7_MaFZ70mdStY";
     const GID = "676156381";
     const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
-    
-    // URL Deployment Apps Script
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymE8tMet42RtwkSbCNXETTYyVuzarK-ImgEYe2yxgwW7sOgX6WVGbXK6Ms2FHzu8SREQ/exec";
-
+   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzj9VwI5eOYhefJLmIG9tB-p_b5IhARM2kKG4KWjjk6lsUTTDLChJesAIsARKFx1IWV/exec";
+   
     let mappedData = [];
     let fpInstance = null;
     let selectedStartDate = null;
     let selectedEndDate = null;
-
-    // State Penyimpan Klik Filter Chart
     let chartClickFilter = { type: null, value: null };
 
     let chartTrendHarianInstance = null;
@@ -395,16 +390,13 @@
         }
       });
 
-      // Set Picker Waktu Down Default ke Waktu Sekarang
       const now = new Date();
       const nowLocal = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
       document.getElementById('input-waktu-down-picker').value = nowLocal;
       
       hitungDurasiOtomatis();
-
-      // Panggil Ambil Data Awal
       ambilData();
-      setInterval(ambilData, 10000); // Live sync 10 detik
+      setInterval(ambilData, 10000);
     });
 
     function setZeroTime(date) {
@@ -416,7 +408,6 @@
     function bukaModal() { document.getElementById("modal-form").style.display = "flex"; }
     function tutupModal() { document.getElementById("modal-form").style.display = "none"; }
 
-    // Helper Format Tanggal ke DD-MMM-YY (contoh: 03-Nov-26)
     function formatTanggalSheet(dateObj) {
       if (!dateObj || isNaN(dateObj.getTime())) return '-';
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -426,7 +417,6 @@
       return `${dd}-${mmm}-${yy}`;
     }
 
-    // Helper Format Waktu ke M/D/YYYY HH:MM:SS
     function formatWaktuSheet(dateObj) {
       if (!dateObj || isNaN(dateObj.getTime())) return '-';
       const mm = dateObj.getMonth() + 1;
@@ -438,7 +428,6 @@
       return `${mm}/${dd}/${yyyy} ${hh}:${min}:${ss}`;
     }
 
-    // Hitung Otomatis Tanggal, Durasi, dan SLA
     function hitungDurasiOtomatis() {
       const valDown = document.getElementById("input-waktu-down-picker").value;
       const valUp = document.getElementById("input-waktu-up-picker").value;
@@ -470,7 +459,6 @@
 
           document.getElementById("input-durasi").value = `${hh}:${mm}:${ss}`;
 
-          // Otomatis tentukan SLA (< 4 Hour / > 4 Hour)
           const diffHours = diffMs / (1000 * 60 * 60);
           if (diffHours <= 4) {
             document.getElementById("input-sla").value = "< 4 Hour";
@@ -697,7 +685,7 @@
             const rawProblem = b[10] ? b[10].trim() : '-';
             const rawAction = b[11] ? b[11].trim() : '-';
             
-            const rawStatus = b[12] ? b[12].trim() : (b[17] ? b[17].trim() : 'CLOSE');
+            const rawStatus = b[12] ? b[12].trim() : (b[17] ? b[17].trim() : 'RUNNING');
 
             const parsedObjDate = parseStringDate(rawTglDown);
             const durasiMenit = hitungMenitDurasi(rawDurasiSheet);
@@ -743,15 +731,12 @@
 
       const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
       
-      // Update Dropdown Filter Stasiun
       selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
         stasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
 
-      // Update Dropdown Modal Input Stasiun
       selectModalStasiun.innerHTML = '<option value="">-- Pilih Stasiun --</option>' + 
         stasiunUnik.map(s => `<option value="${s}" ${s === currentModalStasiun ? 'selected' : ''}>${s}</option>`).join('');
 
-      // Update Dropdown Filter Category
       const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
       selectCategory.innerHTML = '<option value="">Semua Category</option>' + 
         categoryUnik.map(c => `<option value="${c}" ${c === currentCategory ? 'selected' : ''}>${c}</option>`).join('');
@@ -844,8 +829,8 @@
         let statusBadge = `<span class="badge badge-down">${item.status}</span>`;
         if (/progress|penanganan/i.test(item.status)) {
           statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
-        } else if (/resolved|clear|close|up|selesai/i.test(item.status)) {
-          statusBadge = `<span class="badge badge-resolved">${item.status}</span>`;
+        } else if (/running|resolved|clear|close|up|selesai/i.test(item.status)) {
+          statusBadge = `<span class="badge badge-running">${item.status}</span>`;
         }
 
         html += `<tr>
@@ -867,9 +852,6 @@
       tbody.innerHTML = html;
     }
 
-    // ==========================================
-    // FUNGSI ANALYTICS & RENDER CHART / SLA TABLE
-    // ==========================================
     function updateAnalytics(data) {
       document.getElementById("total-record-count").innerText = data.length;
 
@@ -1092,7 +1074,6 @@
         bodyHTML += `<td class="highlight-cell">${rowTotal}</td></tr>`;
       });
 
-      // Baris Total Per Kategori
       bodyHTML += `<tr style="background: #0f172a; font-weight: bold;"><td style="text-align: left; color: #38bdf8;">Grand Total</td>`;
       let grandTotalAll = 0;
       categories.forEach(cat => {
