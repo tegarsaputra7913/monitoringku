@@ -95,6 +95,7 @@
     .form-group label { display: block; font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px; }
     .form-control { width: 100%; background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
     .form-control:focus { border-color: #38bdf8; }
+    .form-control[readonly] { background: #131d35; color: #94a3b8; cursor: not-allowed; }
 
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-cancel { background: #334155; color: #f8fafc; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
@@ -258,6 +259,7 @@
       </div>
       <form id="form-olt" onsubmit="simpanData(event)">
         <div class="form-grid">
+          <!-- Stasiun & Category -->
           <div class="form-group">
             <label>Stasiun</label>
             <input type="text" id="input-stasiun" class="form-control" placeholder="Contoh: ST. ARJASA" required>
@@ -266,14 +268,23 @@
             <label>Category</label>
             <select id="input-category" class="form-control" required>
               <option value="FO Cut">FO Cut</option>
-              <option value="Power Issue">Power Issue</option>
+              <option value="Electrical">Electrical</option>
               <option value="Perangkat">Perangkat</option>
               <option value="Impact Activity">Impact Activity</option>
             </select>
           </div>
+
+          <!-- Brand & Status -->
           <div class="form-group">
             <label>Brand OLT</label>
-            <input type="text" id="input-brand" class="form-control" placeholder="Contoh: HUAWEI / FIBERHOME / NOKIA">
+            <select id="input-brand" class="form-control" required>
+              <option value="HUAWEI">HUAWEI</option>
+              <option value="FIBERHOME">FIBERHOME</option>
+              <option value="NOKIA">NOKIA</option>
+              <option value="ZTE">ZTE</option>
+              <option value="HIOSO">HIOSO</option>
+              <option value="LAINNYA">LAINNYA</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Status</label>
@@ -283,14 +294,41 @@
               <option value="CLOSE">CLOSE</option>
             </select>
           </div>
+
+          <!-- Waktu Down Picker -->
           <div class="form-group">
-            <label>Tanggal Down</label>
-            <input type="text" id="input-tgl-down" class="form-control" placeholder="Contoh: 7 October 2026" required>
+            <label>Waktu Down (Pilih Tanggal & Jam)</label>
+            <input type="datetime-local" id="input-waktu-down-picker" class="form-control" required onchange="hitungDurasiOtomatis()">
           </div>
           <div class="form-group">
-            <label>Waktu Down</label>
-            <input type="text" id="input-waktu-down" class="form-control" placeholder="Contoh: 2026-10-07 10:07:09" required>
+            <label>Tanggal Down (Auto)</label>
+            <input type="text" id="input-tgl-down" class="form-control" placeholder="Terisi Otomatis" readonly>
           </div>
+
+          <!-- Waktu Up Picker -->
+          <div class="form-group">
+            <label>Waktu Up (Pilih Tanggal & Jam)</label>
+            <input type="datetime-local" id="input-waktu-up-picker" class="form-control" onchange="hitungDurasiOtomatis()">
+          </div>
+          <div class="form-group">
+            <label>Tanggal Up (Auto)</label>
+            <input type="text" id="input-tgl-up" class="form-control" placeholder="Terisi Otomatis" readonly>
+          </div>
+
+          <!-- Durasi & Waktu Solving (SLA) -->
+          <div class="form-group">
+            <label>Durasi (Auto)</label>
+            <input type="text" id="input-durasi" class="form-control" placeholder="00:00:00" readonly>
+          </div>
+          <div class="form-group">
+            <label>Waktu Solving (SLA Auto)</label>
+            <select id="input-sla" class="form-control">
+              <option value="< 4 Hour">< 4 Hour</option>
+              <option value="> 4 Hour">> 4 Hour</option>
+            </select>
+          </div>
+
+          <!-- Problem & Action -->
           <div class="form-group form-group-full">
             <label>Problem / Masalah</label>
             <textarea id="input-problem" class="form-control" rows="2" placeholder="Deskripsi problem..."></textarea>
@@ -315,9 +353,9 @@
     const GID = "676156381";
     const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
     
-    // URL Deployment Apps Script Terbaru
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyR4DxjrspN-kTLgpPeV6_4xzqw3qGTdNLU9IgiPwtRrR63lxT7VMMp71HdryCiFNvo3Q/exec";
-
+    // URL Deployment Apps Script
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymE8tMet42RtwkSbCNXETTYyVuzarK-ImgEYe2yxgwW7sOgX6WVGbXK6Ms2FHzu8SREQ/exec";
+    
     let mappedData = [];
     let fpInstance = null;
     let selectedStartDate = null;
@@ -355,17 +393,12 @@
         }
       });
 
+      // Set Picker Waktu Down Default ke Waktu Sekarang
       const now = new Date();
-      const optionsTgl = { day: '2-digit', month: 'long', year: 'numeric' };
-      document.getElementById('input-tgl-down').value = now.toLocaleDateString('en-GB', optionsTgl);
+      const nowLocal = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+      document.getElementById('input-waktu-down-picker').value = nowLocal;
       
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const hh = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      const ss = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('input-waktu-down').value = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+      hitungDurasiOtomatis();
 
       // Panggil Ambil Data Awal
       ambilData();
@@ -381,21 +414,100 @@
     function bukaModal() { document.getElementById("modal-form").style.display = "flex"; }
     function tutupModal() { document.getElementById("modal-form").style.display = "none"; }
 
+    // Helper Format Tanggal ke DD-MMM-YY (contoh: 03-Nov-26)
+    function formatTanggalSheet(dateObj) {
+      if (!dateObj || isNaN(dateObj.getTime())) return '-';
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const mmm = months[dateObj.getMonth()];
+      const yy = String(dateObj.getFullYear()).slice(-2);
+      return `${dd}-${mmm}-${yy}`;
+    }
+
+    // Helper Format Waktu ke M/D/YYYY HH:MM:SS
+    function formatWaktuSheet(dateObj) {
+      if (!dateObj || isNaN(dateObj.getTime())) return '-';
+      const mm = dateObj.getMonth() + 1;
+      const dd = dateObj.getDate();
+      const yyyy = dateObj.getFullYear();
+      const hh = String(dateObj.getHours()).padStart(2, '0');
+      const min = String(dateObj.getMinutes()).padStart(2, '0');
+      const ss = String(dateObj.getSeconds()).padStart(2, '0');
+      return `${mm}/${dd}/${yyyy} ${hh}:${min}:${ss}`;
+    }
+
+    // Hitung Otomatis Tanggal, Durasi, dan SLA
+    function hitungDurasiOtomatis() {
+      const valDown = document.getElementById("input-waktu-down-picker").value;
+      const valUp = document.getElementById("input-waktu-up-picker").value;
+
+      if (valDown) {
+        const dtDown = new Date(valDown);
+        document.getElementById("input-tgl-down").value = formatTanggalSheet(dtDown);
+      } else {
+        document.getElementById("input-tgl-down").value = "-";
+      }
+
+      if (valUp) {
+        const dtUp = new Date(valUp);
+        document.getElementById("input-tgl-up").value = formatTanggalSheet(dtUp);
+      } else {
+        document.getElementById("input-tgl-up").value = "-";
+      }
+
+      if (valDown && valUp) {
+        const dtDown = new Date(valDown);
+        const dtUp = new Date(valUp);
+        const diffMs = dtUp - dtDown;
+
+        if (diffMs > 0) {
+          const totalSec = Math.floor(diffMs / 1000);
+          const hh = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+          const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+          const ss = String(totalSec % 60).padStart(2, '0');
+
+          document.getElementById("input-durasi").value = `${hh}:${mm}:${ss}`;
+
+          // Otomatis tentukan SLA (< 4 Hour / > 4 Hour)
+          const diffHours = diffMs / (1000 * 60 * 60);
+          if (diffHours <= 4) {
+            document.getElementById("input-sla").value = "< 4 Hour";
+          } else {
+            document.getElementById("input-sla").value = "> 4 Hour";
+          }
+        } else {
+          document.getElementById("input-durasi").value = "00:00:00";
+        }
+      } else {
+        document.getElementById("input-durasi").value = "-";
+      }
+    }
+
     async function simpanData(e) {
       e.preventDefault();
       const btnSubmit = document.getElementById("btn-submit-form");
       btnSubmit.innerText = "Mengirim...";
       btnSubmit.disabled = true;
 
+      const valDown = document.getElementById("input-waktu-down-picker").value;
+      const valUp = document.getElementById("input-waktu-up-picker").value;
+
+      const dtDown = valDown ? new Date(valDown) : null;
+      const dtUp = valUp ? new Date(valUp) : null;
+
       const payload = {
+        tanggalDown: document.getElementById("input-tgl-down").value,
+        waktuDown: formatWaktuSheet(dtDown),
+        tanggalUp: document.getElementById("input-tgl-up").value,
+        waktuUp: formatWaktuSheet(dtUp),
+        durasi: document.getElementById("input-durasi").value,
+        waktuSolving: document.getElementById("input-sla").value,
         stasiun: document.getElementById("input-stasiun").value,
         category: document.getElementById("input-category").value,
         brand: document.getElementById("input-brand").value,
-        tanggalDown: document.getElementById("input-tgl-down").value,
-        waktuDown: document.getElementById("input-waktu-down").value,
-        status: document.getElementById("input-status").value,
         problem: document.getElementById("input-problem").value,
-        action: document.getElementById("input-action").value
+        action: document.getElementById("input-action").value,
+        status: document.getElementById("input-status").value
       };
 
       try {
@@ -575,6 +687,7 @@
             let rawTglUp = b[3] ? b[3].trim() : '-';
             let rawWaktuUp = b[4] ? ekstrakJam(b[4]) : '-';
             const rawDurasiSheet = b[5] ? ekstrakJam(b[5]) : '-';
+            const rawSLA = b[6] ? b[6].trim() : '-';
             
             const rawStasiun = b[7] ? b[7].trim() : '-';
             const rawCategory = b[8] ? b[8].trim() : '-';
@@ -582,8 +695,7 @@
             const rawProblem = b[10] ? b[10].trim() : '-';
             const rawAction = b[11] ? b[11].trim() : '-';
             
-            // KOLOM R DI GOOGLE SHEETS = INDEKS 17 (karena A=0, B=1, ..., R=17)
-            const rawStatus = b[17] ? b[17].trim() : (b[12] ? b[12].trim() : 'DOWN');
+            const rawStatus = b[12] ? b[12].trim() : (b[17] ? b[17].trim() : 'CLOSE');
 
             const parsedObjDate = parseStringDate(rawTglDown);
             const durasiMenit = hitungMenitDurasi(rawDurasiSheet);
@@ -599,6 +711,7 @@
               waktuUp: rawWaktuUp,
               durasi: rawDurasiSheet,
               durasiMenit: durasiMenit,
+              slaCategory: rawSLA,
               dateObj: parsedObjDate,
               problem: rawProblem,
               action: rawAction,
@@ -732,8 +845,8 @@
           <td><b>${item.tanggalDown}</b></td>
           <td>${item.waktuDown}</td>
           <td><b style="color: #4ade80;">${item.tanggalUp}</b></td>
-          <td style="color: #4ade80;">${item.waktuUp}</td>
-          <td><span class="duration-tag">⏳ ${item.durasi}</span></td>
+          <td>${item.waktuUp}</td>
+          <td><span class="duration-tag">${item.durasi}</span></td>
           <td>${item.problem}</td>
           <td>${item.action}</td>
           <td>${statusBadge}</td>
@@ -743,34 +856,46 @@
       tbody.innerHTML = html;
     }
 
+    // ==========================================
+    // FUNGSI ANALYTICS & RENDER CHART / SLA TABLE
+    // ==========================================
     function updateAnalytics(data) {
-      document.getElementById("total-record-count").innerText = data.length.toLocaleString('id-ID');
+      document.getElementById("total-record-count").innerText = data.length;
 
-      // 1. TREN HARIAN
-      const perTanggalMap = {};
+      renderTrendHarian(data);
+      renderPieCategory(data);
+      renderBarTopStasiun(data);
+      renderPieSLA(data);
+      renderSLATable(data);
+    }
+
+    function renderTrendHarian(data) {
+      const counts = {};
       data.forEach(d => {
-        const tgl = d.tanggalDown || 'Lainnya';
-        perTanggalMap[tgl] = (perTanggalMap[tgl] || 0) + 1;
+        if (d.tanggalDown && d.tanggalDown !== '-') {
+          counts[d.tanggalDown] = (counts[d.tanggalDown] || 0) + 1;
+        }
       });
 
-      const labelsTanggal = Object.keys(perTanggalMap);
-      const valuesTanggal = Object.values(perTanggalMap);
+      const labels = Object.keys(counts);
+      const values = Object.values(counts);
 
       if (chartTrendHarianInstance) chartTrendHarianInstance.destroy();
-      const ctxTrend = document.getElementById('chartTrendHarian').getContext('2d');
-      chartTrendHarianInstance = new Chart(ctxTrend, {
+
+      const ctx = document.getElementById('chartTrendHarian').getContext('2d');
+      chartTrendHarianInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labelsTanggal,
+          labels: labels,
           datasets: [{
             label: 'Jumlah Gangguan',
-            data: valuesTanggal,
+            data: values,
             borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
             fill: true,
             tension: 0.3,
-            pointBackgroundColor: '#38bdf8',
-            pointRadius: 5
+            pointRadius: 5,
+            pointBackgroundColor: '#38bdf8'
           }]
         },
         options: {
@@ -778,81 +903,83 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            datalabels: { color: '#ffffff', font: { weight: 'bold' } }
+            datalabels: { color: '#f8fafc', anchor: 'end', align: 'top', font: { weight: 'bold' } }
           },
-          onClick: (e, activeElements) => {
-            if (activeElements.length > 0) {
-              const index = activeElements[0].index;
-              handleChartClick('tanggal', labelsTanggal[index]);
+          onClick: (evt, activeEls) => {
+            if (activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              handleChartClick('tanggal', labels[idx]);
             }
           },
           scales: {
             x: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' }, beginAtZero: true }
+            y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: '#2e3d5c' } }
           }
         }
       });
+    }
 
-      // 2. PIE CATEGORY
-      const categoryMap = {};
+    function renderPieCategory(data) {
+      const counts = {};
       data.forEach(d => {
-        const cat = d.category || 'Unassigned';
-        categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+        if (d.category && d.category !== '-') {
+          counts[d.category] = (counts[d.category] || 0) + 1;
+        }
       });
 
-      const labelsCat = Object.keys(categoryMap);
-      const valuesCat = Object.values(categoryMap);
+      const labels = Object.keys(counts);
+      const values = Object.values(counts);
 
       if (pieCategoryInstance) pieCategoryInstance.destroy();
-      const ctxCat = document.getElementById('pieChartCategory').getContext('2d');
-      pieCategoryInstance = new Chart(ctxCat, {
+
+      const ctx = document.getElementById('pieChartCategory').getContext('2d');
+      pieCategoryInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: labelsCat,
+          labels: labels,
           datasets: [{
-            data: valuesCat,
-            backgroundColor: ['#38bdf8', '#c084fc', '#fb923c', '#4ade80', '#f87171']
+            data: values,
+            backgroundColor: ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#8b5cf6', '#64748b']
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 11 } } },
-            datalabels: { color: '#0b1329', font: { weight: 'bold' } }
+            legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12 } },
+            datalabels: { color: '#ffffff', font: { weight: 'bold' } }
           },
-          onClick: (e, activeElements) => {
-            if (activeElements.length > 0) {
-              const index = activeElements[0].index;
-              handleChartClick('category', labelsCat[index]);
+          onClick: (evt, activeEls) => {
+            if (activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              handleChartClick('category', labels[idx]);
             }
           }
         }
       });
+    }
 
-      // 3. BAR TOP 5 STASIUN
-      const stasiunCountMap = {};
+    function renderBarTopStasiun(data) {
+      const counts = {};
       data.forEach(d => {
         if (d.stasiun && d.stasiun !== '-') {
-          stasiunCountMap[d.stasiun] = (stasiunCountMap[d.stasiun] || 0) + 1;
+          counts[d.stasiun] = (counts[d.stasiun] || 0) + 1;
         }
       });
 
-      const sortedStasiun = Object.entries(stasiunCountMap)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-
-      const labelsStasiun = sortedStasiun.map(s => s[0]);
-      const valuesStasiun = sortedStasiun.map(s => s[1]);
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const labels = sorted.map(s => s[0]);
+      const values = sorted.map(s => s[1]);
 
       if (barTopStasiunInstance) barTopStasiunInstance.destroy();
-      const ctxBar = document.getElementById('barTopStasiun').getContext('2d');
-      barTopStasiunInstance = new Chart(ctxBar, {
+
+      const ctx = document.getElementById('barTopStasiun').getContext('2d');
+      barTopStasiunInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labelsStasiun,
+          labels: labels,
           datasets: [{
-            data: valuesStasiun,
+            data: values,
             backgroundColor: '#38bdf8',
             borderRadius: 6
           }]
@@ -860,47 +987,44 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          indexAxis: 'y',
           plugins: {
             legend: { display: false },
-            datalabels: { color: '#ffffff', font: { weight: 'bold' } }
+            datalabels: { color: '#ffffff', anchor: 'end', align: 'top', font: { weight: 'bold' } }
           },
-          onClick: (e, activeElements) => {
-            if (activeElements.length > 0) {
-              const index = activeElements[0].index;
-              handleChartClick('stasiun', labelsStasiun[index]);
+          onClick: (evt, activeEls) => {
+            if (activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              handleChartClick('stasiun', labels[idx]);
             }
           },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' }, beginAtZero: true },
-            y: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: '#2e3d5c' } }
           }
         }
       });
+    }
 
-      // 4. PIE SLA SOLVING
-      let slaUnder4 = 0;
-      let slaOver4 = 0;
+    function renderPieSLA(data) {
+      let under4 = 0;
+      let over4 = 0;
 
       data.forEach(d => {
-        if (d.durasiMenit > 0 && d.durasiMenit <= 240) {
-          slaUnder4++;
-        } else if (d.durasiMenit > 240) {
-          slaOver4++;
+        if (d.durasiMenit > 0) {
+          if (d.durasiMenit <= 240) under4++;
+          else over4++;
         }
       });
 
-      const labelsSLA = ['< 4 Hour', '> 4 Hour'];
-      const valuesSLA = [slaUnder4, slaOver4];
-
       if (pieSLAInstance) pieSLAInstance.destroy();
-      const ctxSLA = document.getElementById('pieChartSLA').getContext('2d');
-      pieSLAInstance = new Chart(ctxSLA, {
+
+      const ctx = document.getElementById('pieChartSLA').getContext('2d');
+      pieSLAInstance = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: labelsSLA,
+          labels: ['< 4 Hour', '> 4 Hour'],
           datasets: [{
-            data: valuesSLA,
+            data: [under4, over4],
             backgroundColor: ['#22c55e', '#ef4444']
           }]
         },
@@ -908,68 +1032,66 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 11 } } },
+            legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12 } },
             datalabels: { color: '#ffffff', font: { weight: 'bold' } }
           },
-          onClick: (e, activeElements) => {
-            if (activeElements.length > 0) {
-              const index = activeElements[0].index;
-              handleChartClick('sla', labelsSLA[index]);
+          onClick: (evt, activeEls) => {
+            if (activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              const labels = ['< 4 Hour', '> 4 Hour'];
+              handleChartClick('sla', labels[idx]);
             }
           }
         }
       });
-
-      // 5. RENDERING MATRIKS SLA TABLE
-      renderMatriksSLA(data);
     }
 
-    function renderMatriksSLA(data) {
+    function renderSLATable(data) {
       const categories = [...new Set(mappedData.map(d => d.category).filter(c => c && c !== '-'))].sort();
-      const headerTr = document.getElementById("sla-table-header");
-      const bodyTbody = document.getElementById("sla-table-body");
+      const headerRow = document.getElementById('sla-table-header');
+      const bodyContainer = document.getElementById('sla-table-body');
 
-      let headerHtml = `<th>WAKTU SOLVING</th>`;
+      let headerHTML = `<th>WAKTU SOLVING</th>`;
       categories.forEach(cat => {
-        headerHtml += `<th>${cat}</th>`;
+        headerHTML += `<th>${cat}</th>`;
       });
-      headerHtml += `<th>Grand Total</th>`;
-      headerTr.innerHTML = headerHtml;
+      headerHTML += `<th>Grand Total</th>`;
+      headerRow.innerHTML = headerHTML;
 
-      const slaRows = [
-        { label: '< 4 Hour', check: (m) => m > 0 && m <= 240 },
-        { label: '> 4 Hour', check: (m) => m > 240 }
-      ];
+      const slaGroups = ['< 4 Hour', '> 4 Hour'];
+      let bodyHTML = '';
 
-      let bodyHtml = '';
-      const totalPerCategory = {};
-      categories.forEach(cat => totalPerCategory[cat] = 0);
-      let grandTotalAll = 0;
-
-      slaRows.forEach(rowDef => {
-        let rowHtml = `<tr><td class="highlight-cell">${rowDef.label}</td>`;
+      slaGroups.forEach(sla => {
+        bodyHTML += `<tr><td style="font-weight: bold; text-align: left;">${sla}</td>`;
         let rowTotal = 0;
 
         categories.forEach(cat => {
-          const count = data.filter(d => d.category === cat && rowDef.check(d.durasiMenit)).length;
-          rowHtml += `<td>${count}</td>`;
+          const count = data.filter(d => {
+            const isCat = d.category === cat;
+            let isSla = false;
+            if (sla === '< 4 Hour') isSla = d.durasiMenit > 0 && d.durasiMenit <= 240;
+            else isSla = d.durasiMenit > 240;
+            return isCat && isSla;
+          }).length;
+
           rowTotal += count;
-          totalPerCategory[cat] += count;
+          bodyHTML += `<td>${count}</td>`;
         });
 
-        rowHtml += `<td class="highlight-cell">${rowTotal}</td></tr>`;
-        grandTotalAll += rowTotal;
-        bodyHtml += rowHtml;
+        bodyHTML += `<td class="highlight-cell">${rowTotal}</td></tr>`;
       });
 
-      let totalRowHtml = `<tr style="background: #0f172a; font-weight: bold;"><td class="highlight-cell">Grand Total</td>`;
+      // Baris Total Per Kategori
+      bodyHTML += `<tr style="background: #0f172a; font-weight: bold;"><td style="text-align: left; color: #38bdf8;">Grand Total</td>`;
+      let grandTotalAll = 0;
       categories.forEach(cat => {
-        totalRowHtml += `<td class="highlight-cell">${totalPerCategory[cat]}</td>`;
+        const catTotal = data.filter(d => d.category === cat).length;
+        grandTotalAll += catTotal;
+        bodyHTML += `<td style="color: #38bdf8;">${catTotal}</td>`;
       });
-      totalRowHtml += `<td class="highlight-cell" style="color: #38bdf8;">${grandTotalAll}</td></tr>`;
-      
-      bodyHtml += totalRowHtml;
-      bodyTbody.innerHTML = bodyHtml;
+      bodyHTML += `<td style="color: #38bdf8; font-weight: 800;">${grandTotalAll}</td></tr>`;
+
+      bodyContainer.innerHTML = bodyHTML;
     }
   </script>
 </body>
