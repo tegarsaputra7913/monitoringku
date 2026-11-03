@@ -82,6 +82,9 @@
     .badge-progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
     .badge-resolved, .badge-running { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
 
+    .btn-edit-row { background: #f59e0b; color: #0b1329; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 11px; transition: all 0.2s; }
+    .btn-edit-row:hover { background: #d97706; color: #ffffff; }
+
     .last-update { font-size: 12px; color: #64748b; text-align: right; margin-top: 16px; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
@@ -234,11 +237,12 @@
               <th>PROBLEM</th>
               <th>ACTION</th>
               <th>STATUS</th>
+              <th>AKSI</th>
             </tr>
           </thead>
           <tbody id="isi-tabel">
             <tr>
-              <td colspan="12" style="text-align: center; padding: 40px; color: #94a3b8;">
+              <td colspan="13" style="text-align: center; padding: 40px; color: #94a3b8;">
                 Menghubungkan ke Google Sheets...
               </td>
             </tr>
@@ -250,14 +254,17 @@
     <div class="last-update" id="waktu-update">Terakhir Diperbarui: -</div>
   </div>
 
-  <!-- Modal Pop-up Input Data Baru -->
+  <!-- Modal Pop-up Input & Edit Data -->
   <div class="modal-overlay" id="modal-form">
     <div class="modal-card">
       <div class="modal-header">
-        <h2>Input Gangguan OLT Baru</h2>
+        <h2 id="modal-title">Input Gangguan OLT Baru</h2>
         <button class="close-modal" onclick="tutupModal()">&times;</button>
       </div>
       <form id="form-olt" onsubmit="simpanData(event)">
+        <!-- Hidden input penanda ID baris yang sedang diedit -->
+        <input type="hidden" id="edit-no" value="">
+
         <div class="form-grid">
           <!-- Stasiun & Category -->
           <div class="form-group">
@@ -271,12 +278,13 @@
             <select id="input-category" class="form-control" required>
               <option value="FO Cut">FO Cut</option>
               <option value="Electrical">Electrical</option>
+              <option value="Power Issue">Power Issue</option>
               <option value="Perangkat">Perangkat</option>
               <option value="Impact Activity">Impact Activity</option>
             </select>
           </div>
 
-          <!-- Brand & Status (DOWN / RUNNING) -->
+          <!-- Brand & Status -->
           <div class="form-group">
             <label>Brand OLT</label>
             <select id="input-brand" class="form-control" required>
@@ -284,6 +292,7 @@
               <option value="FIBERHOME">FIBERHOME</option>
               <option value="NOKIA">NOKIA</option>
               <option value="ZTE">ZTE</option>
+              <option value="COMNNECT">COMNNECT</option>
               <option value="HIOSO">HIOSO</option>
               <option value="LAINNYA">LAINNYA</option>
             </select>
@@ -292,18 +301,20 @@
             <label>Status</label>
             <select id="input-status" class="form-control" required>
               <option value="DOWN">DOWN</option>
+              <option value="PROGRESS">PROGRESS</option>
               <option value="RUNNING">RUNNING</option>
+              <option value="CLOSE">CLOSE</option>
             </select>
           </div>
 
           <!-- Waktu Down Picker -->
           <div class="form-group">
             <label>Waktu Down (Pilih Tanggal & Jam)</label>
-            <input type="datetime-local" id="input-waktu-down-picker" class="form-control" required onchange="hitungDurasiOtomatis()">
+            <input type="datetime-local" id="input-waktu-down-picker" class="form-control" onchange="hitungDurasiOtomatis()">
           </div>
           <div class="form-group">
-            <label>Tanggal Down (Auto)</label>
-            <input type="text" id="input-tgl-down" class="form-control" placeholder="Terisi Otomatis" readonly>
+            <label>Tanggal Down (Auto/Manual)</label>
+            <input type="text" id="input-tgl-down" class="form-control" placeholder="Terisi Otomatis">
           </div>
 
           <!-- Waktu Up Picker -->
@@ -312,14 +323,14 @@
             <input type="datetime-local" id="input-waktu-up-picker" class="form-control" onchange="hitungDurasiOtomatis()">
           </div>
           <div class="form-group">
-            <label>Tanggal Up (Auto)</label>
-            <input type="text" id="input-tgl-up" class="form-control" placeholder="Terisi Otomatis" readonly>
+            <label>Tanggal Up (Auto/Manual)</label>
+            <input type="text" id="input-tgl-up" class="form-control" placeholder="Terisi Otomatis">
           </div>
 
           <!-- Durasi & SLA -->
           <div class="form-group">
-            <label>Durasi (Auto)</label>
-            <input type="text" id="input-durasi" class="form-control" placeholder="00:00:00" readonly>
+            <label>Durasi (Auto/Manual)</label>
+            <input type="text" id="input-durasi" class="form-control" placeholder="00:00:00">
           </div>
           <div class="form-group">
             <label>Waktu Solving (SLA Auto)</label>
@@ -339,6 +350,7 @@
             <textarea id="input-action" class="form-control" rows="2" placeholder="Tindakan penanganan..."></textarea>
           </div>
         </div>
+
         <div class="modal-footer">
           <button type="button" class="btn-cancel" onclick="tutupModal()">Batal</button>
           <button type="submit" id="btn-submit-form" class="btn-submit">Simpan ke Google Sheets</button>
@@ -353,8 +365,8 @@
     const SPREADSHEET_ID = "1ALrR_In0bq_9fBM-irHLsSKO7sCq0r7_MaFZ70mdStY";
     const GID = "676156381";
     const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
-   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzj9VwI5eOYhefJLmIG9tB-p_b5IhARM2kKG4KWjjk6lsUTTDLChJesAIsARKFx1IWV/exec";
-   
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJ0yfxevOL6QezGm34nzV1l-fh3f5eOTk2IaYDFVaTr8mxdj6l4nlwGB7VvAJS9vPPog/exec";
+    
     let mappedData = [];
     let fpInstance = null;
     let selectedStartDate = null;
@@ -405,8 +417,44 @@
       return d;
     }
 
-    function bukaModal() { document.getElementById("modal-form").style.display = "flex"; }
-    function tutupModal() { document.getElementById("modal-form").style.display = "none"; }
+    function bukaModal() { 
+      document.getElementById("form-olt").reset();
+      document.getElementById("edit-no").value = "";
+      document.getElementById("modal-title").innerText = "Input Gangguan OLT Baru";
+      document.getElementById("btn-submit-form").innerText = "Simpan ke Google Sheets";
+      document.getElementById("modal-form").style.display = "flex"; 
+    }
+
+    function tutupModal() { 
+      document.getElementById("modal-form").style.display = "none"; 
+      document.getElementById("form-olt").reset();
+      document.getElementById("edit-no").value = "";
+    }
+
+    function editData(no) {
+      const item = mappedData.find(d => String(d.no) === String(no));
+      if (!item) return alert("Data tidak ditemukan!");
+
+      document.getElementById("edit-no").value = item.no;
+
+      document.getElementById("input-stasiun").value = item.stasiun !== '-' ? item.stasiun : '';
+      document.getElementById("input-category").value = item.category !== '-' ? item.category : 'FO Cut';
+      document.getElementById("input-brand").value = item.brand !== '-' ? item.brand : 'HUAWEI';
+      document.getElementById("input-status").value = item.status !== '-' ? item.status : 'DOWN';
+
+      document.getElementById("input-tgl-down").value = item.tanggalDown !== '-' ? item.tanggalDown : '';
+      document.getElementById("input-tgl-up").value = item.tanggalUp !== '-' ? item.tanggalUp : '';
+      document.getElementById("input-durasi").value = item.durasi !== '-' ? item.durasi : '';
+      document.getElementById("input-sla").value = item.slaCategory || "< 4 Hour";
+
+      document.getElementById("input-problem").value = item.problem !== '-' ? item.problem : '';
+      document.getElementById("input-action").value = item.action !== '-' ? item.action : '';
+
+      document.getElementById("modal-title").innerText = `Edit Data OLT (No: ${item.no})`;
+      document.getElementById("btn-submit-form").innerText = "Update Data Ke Google Sheets";
+
+      document.getElementById("modal-form").style.display = "flex";
+    }
 
     function formatTanggalSheet(dateObj) {
       if (!dateObj || isNaN(dateObj.getTime())) return '-';
@@ -435,15 +483,11 @@
       if (valDown) {
         const dtDown = new Date(valDown);
         document.getElementById("input-tgl-down").value = formatTanggalSheet(dtDown);
-      } else {
-        document.getElementById("input-tgl-down").value = "-";
       }
 
       if (valUp) {
         const dtUp = new Date(valUp);
         document.getElementById("input-tgl-up").value = formatTanggalSheet(dtUp);
-      } else {
-        document.getElementById("input-tgl-up").value = "-";
       }
 
       if (valDown && valUp) {
@@ -465,11 +509,7 @@
           } else {
             document.getElementById("input-sla").value = "> 4 Hour";
           }
-        } else {
-          document.getElementById("input-durasi").value = "00:00:00";
         }
-      } else {
-        document.getElementById("input-durasi").value = "-";
       }
     }
 
@@ -479,6 +519,7 @@
       btnSubmit.innerText = "Mengirim...";
       btnSubmit.disabled = true;
 
+      const editNo = document.getElementById("edit-no").value;
       const valDown = document.getElementById("input-waktu-down-picker").value;
       const valUp = document.getElementById("input-waktu-up-picker").value;
 
@@ -486,10 +527,12 @@
       const dtUp = valUp ? new Date(valUp) : null;
 
       const payload = {
+        actionType: editNo ? "UPDATE" : "CREATE",
+        no: editNo,
         tanggalDown: document.getElementById("input-tgl-down").value,
-        waktuDown: formatWaktuSheet(dtDown),
+        waktuDown: dtDown ? formatWaktuSheet(dtDown) : "-",
         tanggalUp: document.getElementById("input-tgl-up").value,
-        waktuUp: formatWaktuSheet(dtUp),
+        waktuUp: dtUp ? formatWaktuSheet(dtUp) : "-",
         durasi: document.getElementById("input-durasi").value,
         waktuSolving: document.getElementById("input-sla").value,
         stasiun: document.getElementById("input-stasiun").value,
@@ -508,10 +551,9 @@
           body: JSON.stringify(payload)
         });
 
-        alert("Data berhasil disimpan ke Google Sheets!");
+        alert(editNo ? "Data berhasil diperbarui di Google Sheets!" : "Data berhasil disimpan ke Google Sheets!");
         tutupModal();
-        document.getElementById("form-olt").reset();
-        setTimeout(ambilData, 2000);
+        setTimeout(ambilData, 1500);
 
       } catch (err) {
         console.error("Gagal simpan:", err);
@@ -820,7 +862,7 @@
       const tbody = document.getElementById("isi-tabel");
 
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok dengan filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok dengan filter.</td></tr>`;
         return;
       }
 
@@ -846,6 +888,9 @@
           <td>${item.problem}</td>
           <td>${item.action}</td>
           <td>${statusBadge}</td>
+          <td>
+            <button class="btn-edit-row" onclick="editData('${item.no}')">✏️ Edit</button>
+          </td>
         </tr>`;
       });
 
