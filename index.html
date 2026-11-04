@@ -266,13 +266,14 @@
         <input type="hidden" id="edit-no" value="">
 
         <div class="form-grid">
-          <!-- Stasiun & Category -->
-          <div class="form-group">
+          <!-- Stasiun dengan Dropdown Custom Searchable -->
+          <div class="form-group" style="position: relative;">
             <label>Stasiun</label>
-            <select id="input-stasiun" class="form-control" required>
-              <option value="">-- Pilih Stasiun --</option>
-            </select>
+            <input type="text" id="input-stasiun" class="form-control" placeholder="🔍 Cari / Pilih Stasiun..." onfocus="bukaDropdownStasiun()" oninput="filterDropdownStasiun()" autocomplete="off" required>
+            <div id="dropdown-stasiun-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 220px; overflow-y: auto; background: #0f172a; border: 1px solid #2e3d5c; border-radius: 6px; z-index: 1050; margin-top: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.7);">
+            </div>
           </div>
+
           <div class="form-group">
             <label>Category</label>
             <select id="input-category" class="form-control" required>
@@ -335,8 +336,8 @@
           <div class="form-group">
             <label>Waktu Solving (SLA Auto)</label>
             <select id="input-sla" class="form-control">
-              <option value="< 4 Hour">< 4 Hour</option>
-              <option value="> 4 Hour">> 4 Hour</option>
+              <option value="< 4 Hour">&lt; 4 Hour</option>
+              <option value="> 4 Hour">&gt; 4 Hour</option>
             </select>
           </div>
 
@@ -368,6 +369,7 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJ0yfxevOL6QezGm34nzV1l-fh3f5eOTk2IaYDFVaTr8mxdj6l4nlwGB7VvAJS9vPPog/exec";
 
     let mappedData = [];
+    let daftarStasiunUnik = [];
     let fpInstance = null;
     let selectedStartDate = null;
     let selectedEndDate = null;
@@ -411,6 +413,15 @@
       setInterval(ambilData, 10000);
     });
 
+    // Event listener luar untuk menutup dropdown custom stasiun saat klik tempat lain
+    document.addEventListener("click", function(e) {
+      const container = document.getElementById("dropdown-stasiun-list");
+      const input = document.getElementById("input-stasiun");
+      if (container && input && !input.contains(e.target) && !container.contains(e.target)) {
+        container.style.display = "none";
+      }
+    });
+
     function setZeroTime(date) {
       const d = new Date(date);
       d.setHours(0, 0, 0, 0);
@@ -429,6 +440,7 @@
       document.getElementById("modal-form").style.display = "none"; 
       document.getElementById("form-olt").reset();
       document.getElementById("edit-no").value = "";
+      document.getElementById("dropdown-stasiun-list").style.display = "none";
     }
 
     function editData(no) {
@@ -697,7 +709,7 @@
 
     async function ambilData() {
       try {
-        const respon = await fetch(FETCH_URL);
+        const respon = await fetch(FETCH_URL + "&_=" + new Date().getTime());
         const teks = await respon.text();
         const baris = parseCSV(teks);
 
@@ -766,23 +778,57 @@
     function updateDropdowns() {
       const selectStasiun = document.getElementById("filter-stasiun");
       const selectCategory = document.getElementById("filter-category");
-      const selectModalStasiun = document.getElementById("input-stasiun");
 
       const currentStasiun = selectStasiun.value;
       const currentCategory = selectCategory.value;
-      const currentModalStasiun = selectModalStasiun.value;
 
-      const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
+      daftarStasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
       
-      selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
-        stasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
-
-      selectModalStasiun.innerHTML = '<option value="">-- Pilih Stasiun --</option>' + 
-        stasiunUnik.map(s => `<option value="${s}" ${s === currentModalStasiun ? 'selected' : ''}>${s}</option>`).join('');
+      selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + daftarStasiunUnik.length + ')</option>' + 
+        daftarStasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
 
       const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
       selectCategory.innerHTML = '<option value="">Semua Category</option>' + 
         categoryUnik.map(c => `<option value="${c}" ${c === currentCategory ? 'selected' : ''}>${c}</option>`).join('');
+
+      renderListStasiunModal(daftarStasiunUnik);
+    }
+
+    /* --- FUNGSI DROPDOWN CUSTOM SEARCHABLE UNTUK MODAL --- */
+    function renderListStasiunModal(list) {
+      const container = document.getElementById("dropdown-stasiun-list");
+      if (!container) return;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="padding: 10px; color: #94a3b8; font-size: 12px; text-align: center;">Stasiun tidak ditemukan</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(st => `
+        <div onclick="pilihStasiunModal('${st.replace(/'/g, "\\'")}')" 
+             style="padding: 10px 12px; cursor: pointer; color: #f8fafc; font-size: 13px; border-bottom: 1px solid #1e293b; transition: background 0.15s;" 
+             onmouseover="this.style.background='#1e293b'" 
+             onmouseout="this.style.background='transparent'">
+          ${st}
+        </div>
+      `).join('');
+    }
+
+    function bukaDropdownStasiun() {
+      const container = document.getElementById("dropdown-stasiun-list");
+      container.style.display = "block";
+      filterDropdownStasiun();
+    }
+
+    function filterDropdownStasiun() {
+      const val = document.getElementById("input-stasiun").value.toLowerCase();
+      const filtered = daftarStasiunUnik.filter(s => s.toLowerCase().includes(val));
+      renderListStasiunModal(filtered);
+    }
+
+    function pilihStasiunModal(val) {
+      document.getElementById("input-stasiun").value = val;
+      document.getElementById("dropdown-stasiun-list").style.display = "none";
     }
 
     function handleChartClick(type, value) {
