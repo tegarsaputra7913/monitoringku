@@ -274,14 +274,29 @@
             </div>
           </div>
 
+          <!-- Category Sesuai Gambar Terbaru -->
           <div class="form-group">
             <label>Category</label>
             <select id="input-category" class="form-control" required>
-              <option value="FO Cut">FO Cut</option>
+              <option value="Activity">Activity</option>
+              <option value="Aircon Hightemp">Aircon Hightemp</option>
+              <option value="Bug">Bug</option>
+              <option value="DWDM Nokia">DWDM Nokia</option>
+              <option value="Degrade">Degrade</option>
               <option value="Electrical">Electrical</option>
-              <option value="Power Issue">Power Issue</option>
-              <option value="Perangkat">Perangkat</option>
+              <option value="FO Cut">FO Cut</option>
+              <option value="IP Problem">IP Problem</option>
               <option value="Impact Activity">Impact Activity</option>
+              <option value="Impact Listrik Site Lain">Impact Listrik Site Lain</option>
+              <option value="Impact Power Issue site Lain">Impact Power Issue site Lain</option>
+              <option value="Impact Site Lain">Impact Site Lain</option>
+              <option value="Impact migrasi">Impact migrasi</option>
+              <option value="Looping">Looping</option>
+              <option value="MPLS">MPLS</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Other">Other</option>
+              <option value="PERANGKAT">PERANGKAT</option>
+              <option value="Power Issue">Power Issue</option>
             </select>
           </div>
 
@@ -366,8 +381,8 @@
     const SPREADSHEET_ID = "1ALrR_In0bq_9fBM-irHLsSKO7sCq0r7_MaFZ70mdStY";
     const GID = "676156381";
     const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJ0yfxevOL6QezGm34nzV1l-fh3f5eOTk2IaYDFVaTr8mxdj6l4nlwGB7VvAJS9vPPog/exec";
-
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLc2xaYSxCtNFPyIcCUdLx6CpDltnUUcs3EK5cB1slhLuCPYLZ5whL1alKM-8vtWj3WA/exec";
+    
     let mappedData = [];
     let daftarStasiunUnik = [];
     let fpInstance = null;
@@ -413,7 +428,7 @@
       setInterval(ambilData, 10000);
     });
 
-    // Event listener luar untuk menutup dropdown custom stasiun saat klik tempat lain
+    // Menutup dropdown custom stasiun saat user klik di luar elemen
     document.addEventListener("click", function(e) {
       const container = document.getElementById("dropdown-stasiun-list");
       const input = document.getElementById("input-stasiun");
@@ -794,7 +809,7 @@
       renderListStasiunModal(daftarStasiunUnik);
     }
 
-    /* --- FUNGSI DROPDOWN CUSTOM SEARCHABLE UNTUK MODAL --- */
+    /* --- DROPDOWN CUSTOM STASIUN SEARCHABLE UNTUK MODAL --- */
     function renderListStasiunModal(list) {
       const container = document.getElementById("dropdown-stasiun-list");
       if (!container) return;
@@ -1024,7 +1039,11 @@
           labels: labels,
           datasets: [{
             data: values,
-            backgroundColor: ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#8b5cf6', '#64748b']
+            backgroundColor: [
+              '#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#8b5cf6', 
+              '#ef4444', '#06b6d4', '#84cc16', '#f97316', '#14b8a6', 
+              '#6366f1', '#d946ef', '#64748b', '#a855f7', '#eab308'
+            ]
           }]
         },
         options: {
