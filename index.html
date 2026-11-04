@@ -132,7 +132,7 @@
         <button class="btn-add" onclick="bukaModal()">+ Tambah Data OLT</button>
         <div class="status-badge">
           <span class="dot"></span>
-          <span id="sync-status">Live Sync (10s)</span>
+          <span id="sync-status">Live Sync (30s)</span>
         </div>
       </div>
     </div>
@@ -387,6 +387,15 @@
     Chart.register(ChartDataLabels);
 
     document.addEventListener("DOMContentLoaded", function() {
+      // Inisialisasi Select2 CUKUP SEKALI SAJA di awal agar browser anti-lag
+      $('#filter-stasiun').select2({ placeholder: "Cari Stasiun...", allowClear: true, width: '100%' });
+      $('#filter-category').select2({ placeholder: "Cari Category...", allowClear: true, width: '100%' });
+      $('#input-stasiun').select2({ dropdownParent: $('#modal-form'), placeholder: "-- Pilih Stasiun --", width: '100%' });
+
+      $('#filter-stasiun, #filter-category').off('change').on('change', function() {
+        terapkanFilter();
+      });
+
       fpInstance = flatpickr("#filter-date-range", {
         mode: "range",
         dateFormat: "Y-m-d",
@@ -409,7 +418,7 @@
       });
 
       ambilData();
-      setInterval(ambilData, 10000);
+      setInterval(ambilData, 30000); // Set ke 30 detik agar ringan
     });
 
     function setZeroTime(date) {
@@ -532,7 +541,7 @@
         }
 
         mappedData = baris.slice(startRowIndex)
-          .filter(b => b.length > 6 && b[0] && b[0].trim() !== '')
+          .filter(b => b.length >= 13 && b[0] && b[0].trim() !== '')
           .map((b, idx) => {
             const rawNo = b[0] ? b[0].trim() : (idx + 1);
             let rawTglDown = b[1] ? b[1].trim() : '-';
@@ -546,7 +555,9 @@
             const rawBrand = b[9] ? b[9].trim() : '-';
             const rawProblem = b[10] ? b[10].trim() : '-';
             const rawAction = b[11] ? b[11].trim() : '-';
-            const rawStatus = b[12] ? b[12].trim() : 'RUNNING';
+            
+            // Kolom R (STATUS) berada pada indeks ke-17 di Apps Script
+            const rawStatus = b[17] ? b[17].trim() : (b[12] ? b[12].trim() : 'RUNNING');
 
             return {
               no: rawNo,
@@ -586,29 +597,25 @@
       const currStasiun = selectStasiun.val();
       const currCat = selectCategory.val();
 
-      const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
-      const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
+      const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s && s !== '-' && s !== ''))].sort();
+      const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c && c !== '-' && c !== ''))].sort();
 
-      selectStasiun.html('<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
-        stasiunUnik.map(s => `<option value="${s}">${s}</option>`).join(''));
-      
-      selectModalStasiun.html('<option value="">-- Pilih Stasiun --</option>' + 
-        stasiunUnik.map(s => `<option value="${s}">${s}</option>`).join(''));
+      // Mencegah re-initialization Select2 terus-menerus agar bebas lag
+      if (selectStasiun.children('option').length !== (stasiunUnik.length + 1)) {
+        let optStasiun = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>';
+        stasiunUnik.forEach(s => { optStasiun += `<option value="${s}">${s}</option>`; });
+        selectStasiun.html(optStasiun).val(currStasiun).trigger('change.select2');
 
-      selectCategory.html('<option value="">Semua Category</option>' + 
-        categoryUnik.map(c => `<option value="${c}">${c}</option>`).join(''));
+        let optModal = '<option value="">-- Pilih Stasiun --</option>';
+        stasiunUnik.forEach(s => { optModal += `<option value="${s}">${s}</option>`; });
+        selectModalStasiun.html(optModal);
+      }
 
-      selectStasiun.val(currStasiun);
-      selectCategory.val(currCat);
-
-      // Inisialisasi Searchable Dropdown Select2
-      $('#filter-stasiun').select2({ placeholder: "Cari Stasiun...", allowClear: true, width: '100%' });
-      $('#filter-category').select2({ placeholder: "Cari Category...", allowClear: true, width: '100%' });
-      $('#input-stasiun').select2({ dropdownParent: $('#modal-form'), placeholder: "-- Pilih Stasiun --", width: '100%' });
-
-      $('#filter-stasiun, #filter-category').off('change').on('change', function() {
-        terapkanFilter();
-      });
+      if (selectCategory.children('option').length !== (categoryUnik.length + 1)) {
+        let optCat = '<option value="">Semua Category</option>';
+        categoryUnik.forEach(c => { optCat += `<option value="${c}">${c}</option>`; });
+        selectCategory.html(optCat).val(currCat).trigger('change.select2');
+      }
     }
 
     function handleChartClick(type, value) {
@@ -852,7 +859,7 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
-        alert(editNo ? "Data diperbarui!" : "Data disimpan!");
+        alert(editNo ? "Data berhasil diperbarui!" : "Data berhasil disimpan!");
         tutupModal();
         setTimeout(ambilData, 600);
       } catch (err) {
