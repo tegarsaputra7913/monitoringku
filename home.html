@@ -6,7 +6,14 @@
   <title>Monitoring Status OLT Down Stasiun</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Flatpickr Date Picker CSS (Dark Theme) -->
+  <!-- jQuery (Wajib untuk Select2) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Select2 Searchable Dropdown CSS & JS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  <!-- Flatpickr Date Picker CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 
@@ -35,7 +42,7 @@
     .filter-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: end; }
     .filter-group { display: flex; flex-direction: column; gap: 6px; }
     .filter-group label { font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; cursor: pointer; }
+    .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; cursor: pointer; width: 100%; }
     .filter-control:focus { border-color: #38bdf8; }
     
     .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; height: 40px; }
@@ -98,16 +105,19 @@
     .form-group label { display: block; font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px; }
     .form-control { width: 100%; background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
     .form-control:focus { border-color: #38bdf8; }
-    .form-control[readonly] { background: #131d35; color: #94a3b8; cursor: not-allowed; }
 
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-cancel { background: #334155; color: #f8fafc; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
     .btn-submit { background: #38bdf8; color: #0b1329; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .flatpickr-calendar { background: #182238 !important; border: 1px solid #2e3d5c !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
-    .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #38bdf8 !important; border-color: #38bdf8 !important; color: #0b1329 !important; font-weight: bold; }
-    .flatpickr-day.inRange { background: rgba(56, 189, 248, 0.2) !important; box-shadow: -5px 0 0 rgba(56, 189, 248, 0.2), 5px 0 0 rgba(56, 189, 248, 0.2) !important; }
+    /* Custom Styling Select2 Dark Mode */
+    .select2-container--default .select2-selection--single { background-color: #0b1329 !important; border: 1px solid #2e3d5c !important; border-radius: 8px !important; height: 40px !important; display: flex !important; align-items: center !important; }
+    .select2-container--default .select2-selection--single .select2-selection__rendered { color: #f8fafc !important; line-height: normal !important; padding-left: 12px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 38px !important; }
+    .select2-dropdown { background-color: #182238 !important; border: 1px solid #2e3d5c !important; color: #f8fafc !important; z-index: 99999 !important; }
+    .select2-search__field { background-color: #0b1329 !important; border: 1px solid #2e3d5c !important; color: #f8fafc !important; border-radius: 4px !important; }
+    .select2-results__option--highlighted[aria-selected] { background-color: #38bdf8 !important; color: #0b1329 !important; }
+    .select2-results__option[aria-selected="true"] { background-color: #1f2d4a !important; }
   </style>
 </head>
 <body>
@@ -136,7 +146,7 @@
 
       <div class="filter-group">
         <label>Pilih Stasiun</label>
-        <select id="filter-stasiun" class="filter-control" onchange="terapkanFilter()">
+        <select id="filter-stasiun" class="filter-control">
           <option value="">Semua Stasiun</option>
         </select>
       </div>
@@ -148,7 +158,7 @@
 
       <div class="filter-group">
         <label>Category</label>
-        <select id="filter-category" class="filter-control" onchange="terapkanFilter()">
+        <select id="filter-category" class="filter-control">
           <option value="">Semua Category</option>
         </select>
       </div>
@@ -158,16 +168,16 @@
       </div>
     </div>
 
-    <!-- Indikator Banner Filter Aktif -->
+    <!-- Banner Filter Aktif -->
     <div id="active-filter-badge" class="active-filter-badge">
       <span id="active-filter-text">Filter Diagram Aktif: -</span>
-      <button style="background: rgba(239, 68, 68, 0.2); border: 1px solid #f87171; color: #f87171; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;" onclick="resetChartClickFilter()">✕ Normalkan Diagram (Reset)</button>
+      <button style="background: rgba(239, 68, 68, 0.2); border: 1px solid #f87171; color: #f87171; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;" onclick="resetChartClickFilter()">✕ Reset Diagram Filter</button>
     </div>
 
     <div class="dashboard-panel">
-      <!-- 1. GRAFIK TREN HARIAN ATAS -->
+      <!-- 1. GRAFIK TREN -->
       <div class="chart-card">
-        <div class="chart-title">Tren Jumlah Gangguan Per Tanggal (Klik titik untuk filter / klik ulang untuk normal)</div>
+        <div class="chart-title">Tren Jumlah Gangguan Per Tanggal</div>
         <div class="counter-box">
           <div class="lbl">Record Count</div>
           <div class="num" id="total-record-count">0</div>
@@ -177,31 +187,31 @@
         </div>
       </div>
 
-      <!-- 2. GRID 3 CHART BAWAH -->
+      <!-- 2. GRID CHART BAWAH -->
       <div class="bottom-grid">
         <div class="chart-card">
-          <div class="chart-title" style="text-align: center;">Category (Klik pie)</div>
+          <div class="chart-title" style="text-align: center;">Category</div>
           <div class="pie-box">
             <canvas id="pieChartCategory"></canvas>
           </div>
         </div>
 
         <div class="chart-card">
-          <div class="chart-title" style="text-align: center;">Top 5 Stasiun (Klik batang)</div>
+          <div class="chart-title" style="text-align: center;">Top 5 Stasiun</div>
           <div style="height: 260px; position: relative;">
             <canvas id="barTopStasiun"></canvas>
           </div>
         </div>
 
         <div class="chart-card">
-          <div class="chart-title" style="text-align: center;">Waktu Solving SLA (Klik pie)</div>
+          <div class="chart-title" style="text-align: center;">Waktu Solving SLA</div>
           <div class="pie-box">
             <canvas id="pieChartSLA"></canvas>
           </div>
         </div>
       </div>
 
-      <!-- 3. TABEL MATRIKS SLA SOLVING -->
+      <!-- 3. TABEL MATRIKS SLA -->
       <div class="chart-card">
         <div class="chart-title">Total Problem / Waktu Solving SLA</div>
         <div class="sla-table-container">
@@ -212,14 +222,13 @@
                 <th>Grand Total</th>
               </tr>
             </thead>
-            <tbody id="sla-table-body">
-            </tbody>
+            <tbody id="sla-table-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Tabel Data Utama -->
+    <!-- Tabel Utama -->
     <div class="table-container">
       <div class="table-wrapper">
         <table>
@@ -242,9 +251,7 @@
           </thead>
           <tbody id="isi-tabel">
             <tr>
-              <td colspan="13" style="text-align: center; padding: 40px; color: #94a3b8;">
-                Menghubungkan ke Google Sheets...
-              </td>
+              <td colspan="13" style="text-align: center; padding: 40px; color: #94a3b8;">Menghubungkan ke Google Sheets...</td>
             </tr>
           </tbody>
         </table>
@@ -254,7 +261,7 @@
     <div class="last-update" id="waktu-update">Terakhir Diperbarui: -</div>
   </div>
 
-  <!-- Modal Pop-up Input & Edit Data -->
+  <!-- Modal Pop-up Input/Edit -->
   <div class="modal-overlay" id="modal-form">
     <div class="modal-card">
       <div class="modal-header">
@@ -262,17 +269,16 @@
         <button class="close-modal" onclick="tutupModal()">&times;</button>
       </div>
       <form id="form-olt" onsubmit="simpanData(event)">
-        <!-- Hidden input penanda ID baris yang sedang diedit -->
         <input type="hidden" id="edit-no" value="">
 
         <div class="form-grid">
-          <!-- Stasiun & Category -->
           <div class="form-group">
             <label>Stasiun</label>
             <select id="input-stasiun" class="form-control" required>
               <option value="">-- Pilih Stasiun --</option>
             </select>
           </div>
+
           <div class="form-group">
             <label>Category</label>
             <select id="input-category" class="form-control" required>
@@ -284,7 +290,6 @@
             </select>
           </div>
 
-          <!-- Brand & Status -->
           <div class="form-group">
             <label>Brand OLT</label>
             <select id="input-brand" class="form-control" required>
@@ -297,6 +302,7 @@
               <option value="LAINNYA">LAINNYA</option>
             </select>
           </div>
+
           <div class="form-group">
             <label>Status</label>
             <select id="input-status" class="form-control" required>
@@ -307,44 +313,44 @@
             </select>
           </div>
 
-          <!-- Waktu Down Picker -->
           <div class="form-group">
             <label>Waktu Down (Pilih Tanggal & Jam)</label>
             <input type="datetime-local" id="input-waktu-down-picker" class="form-control" onchange="hitungDurasiOtomatis()">
           </div>
+
           <div class="form-group">
-            <label>Tanggal Down (Auto/Manual)</label>
+            <label>Tanggal Down</label>
             <input type="text" id="input-tgl-down" class="form-control" placeholder="Terisi Otomatis">
           </div>
 
-          <!-- Waktu Up Picker -->
           <div class="form-group">
             <label>Waktu Up (Pilih Tanggal & Jam)</label>
             <input type="datetime-local" id="input-waktu-up-picker" class="form-control" onchange="hitungDurasiOtomatis()">
           </div>
+
           <div class="form-group">
-            <label>Tanggal Up (Auto/Manual)</label>
+            <label>Tanggal Up</label>
             <input type="text" id="input-tgl-up" class="form-control" placeholder="Terisi Otomatis">
           </div>
 
-          <!-- Durasi & SLA -->
           <div class="form-group">
-            <label>Durasi (Auto/Manual)</label>
+            <label>Durasi</label>
             <input type="text" id="input-durasi" class="form-control" placeholder="00:00:00">
           </div>
+
           <div class="form-group">
-            <label>Waktu Solving (SLA Auto)</label>
+            <label>Waktu Solving (SLA)</label>
             <select id="input-sla" class="form-control">
               <option value="< 4 Hour">< 4 Hour</option>
               <option value="> 4 Hour">> 4 Hour</option>
             </select>
           </div>
 
-          <!-- Problem & Action -->
           <div class="form-group form-group-full">
             <label>Problem / Masalah</label>
             <textarea id="input-problem" class="form-control" rows="2" placeholder="Deskripsi problem..."></textarea>
           </div>
+
           <div class="form-group form-group-full">
             <label>Action / Penanganan</label>
             <textarea id="input-action" class="form-control" rows="2" placeholder="Tindakan penanganan..."></textarea>
@@ -402,11 +408,6 @@
         }
       });
 
-      const now = new Date();
-      const nowLocal = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-      document.getElementById('input-waktu-down-picker').value = nowLocal;
-      
-      hitungDurasiOtomatis();
       ambilData();
       setInterval(ambilData, 10000);
     });
@@ -420,6 +421,7 @@
     function bukaModal() { 
       document.getElementById("form-olt").reset();
       document.getElementById("edit-no").value = "";
+      $('#input-stasiun').val('').trigger('change');
       document.getElementById("modal-title").innerText = "Input Gangguan OLT Baru";
       document.getElementById("btn-submit-form").innerText = "Simpan ke Google Sheets";
       document.getElementById("modal-form").style.display = "flex"; 
@@ -428,7 +430,6 @@
     function tutupModal() { 
       document.getElementById("modal-form").style.display = "none"; 
       document.getElementById("form-olt").reset();
-      document.getElementById("edit-no").value = "";
     }
 
     function editData(no) {
@@ -436,8 +437,7 @@
       if (!item) return alert("Data tidak ditemukan!");
 
       document.getElementById("edit-no").value = item.no;
-
-      document.getElementById("input-stasiun").value = item.stasiun !== '-' ? item.stasiun : '';
+      $('#input-stasiun').val(item.stasiun).trigger('change');
       document.getElementById("input-category").value = item.category !== '-' ? item.category : 'FO Cut';
       document.getElementById("input-brand").value = item.brand !== '-' ? item.brand : 'HUAWEI';
       document.getElementById("input-status").value = item.status !== '-' ? item.status : 'DOWN';
@@ -452,209 +452,45 @@
 
       document.getElementById("modal-title").innerText = `Edit Data OLT (No: ${item.no})`;
       document.getElementById("btn-submit-form").innerText = "Update Data Ke Google Sheets";
-
       document.getElementById("modal-form").style.display = "flex";
-    }
-
-    function formatTanggalSheet(dateObj) {
-      if (!dateObj || isNaN(dateObj.getTime())) return '-';
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const dd = String(dateObj.getDate()).padStart(2, '0');
-      const mmm = months[dateObj.getMonth()];
-      const yy = String(dateObj.getFullYear()).slice(-2);
-      return `${dd}-${mmm}-${yy}`;
-    }
-
-    function formatWaktuSheet(dateObj) {
-      if (!dateObj || isNaN(dateObj.getTime())) return '-';
-      const mm = dateObj.getMonth() + 1;
-      const dd = dateObj.getDate();
-      const yyyy = dateObj.getFullYear();
-      const hh = String(dateObj.getHours()).padStart(2, '0');
-      const min = String(dateObj.getMinutes()).padStart(2, '0');
-      const ss = String(dateObj.getSeconds()).padStart(2, '0');
-      return `${mm}/${dd}/${yyyy} ${hh}:${min}:${ss}`;
-    }
-
-    function hitungDurasiOtomatis() {
-      const valDown = document.getElementById("input-waktu-down-picker").value;
-      const valUp = document.getElementById("input-waktu-up-picker").value;
-
-      if (valDown) {
-        const dtDown = new Date(valDown);
-        document.getElementById("input-tgl-down").value = formatTanggalSheet(dtDown);
-      }
-
-      if (valUp) {
-        const dtUp = new Date(valUp);
-        document.getElementById("input-tgl-up").value = formatTanggalSheet(dtUp);
-      }
-
-      if (valDown && valUp) {
-        const dtDown = new Date(valDown);
-        const dtUp = new Date(valUp);
-        const diffMs = dtUp - dtDown;
-
-        if (diffMs > 0) {
-          const totalSec = Math.floor(diffMs / 1000);
-          const hh = String(Math.floor(totalSec / 3600)).padStart(2, '0');
-          const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
-          const ss = String(totalSec % 60).padStart(2, '0');
-
-          document.getElementById("input-durasi").value = `${hh}:${mm}:${ss}`;
-
-          const diffHours = diffMs / (1000 * 60 * 60);
-          if (diffHours <= 4) {
-            document.getElementById("input-sla").value = "< 4 Hour";
-          } else {
-            document.getElementById("input-sla").value = "> 4 Hour";
-          }
-        }
-      }
-    }
-
-    async function simpanData(e) {
-      e.preventDefault();
-      const btnSubmit = document.getElementById("btn-submit-form");
-      btnSubmit.innerText = "Mengirim...";
-      btnSubmit.disabled = true;
-
-      const editNo = document.getElementById("edit-no").value;
-      const valDown = document.getElementById("input-waktu-down-picker").value;
-      const valUp = document.getElementById("input-waktu-up-picker").value;
-
-      const dtDown = valDown ? new Date(valDown) : null;
-      const dtUp = valUp ? new Date(valUp) : null;
-
-      const payload = {
-        actionType: editNo ? "UPDATE" : "CREATE",
-        no: editNo,
-        tanggalDown: document.getElementById("input-tgl-down").value,
-        waktuDown: dtDown ? formatWaktuSheet(dtDown) : "-",
-        tanggalUp: document.getElementById("input-tgl-up").value,
-        waktuUp: dtUp ? formatWaktuSheet(dtUp) : "-",
-        durasi: document.getElementById("input-durasi").value,
-        waktuSolving: document.getElementById("input-sla").value,
-        stasiun: document.getElementById("input-stasiun").value,
-        category: document.getElementById("input-category").value,
-        brand: document.getElementById("input-brand").value,
-        problem: document.getElementById("input-problem").value,
-        action: document.getElementById("input-action").value,
-        status: document.getElementById("input-status").value
-      };
-
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        alert(editNo ? "Data berhasil diperbarui di Google Sheets!" : "Data berhasil disimpan ke Google Sheets!");
-        tutupModal();
-        setTimeout(ambilData, 600);
-
-      } catch (err) {
-        console.error("Gagal simpan:", err);
-        alert("Proses simpan selesai.");
-        tutupModal();
-        setTimeout(ambilData, 600);
-      } finally {
-        btnSubmit.innerText = "Simpan ke Google Sheets";
-        btnSubmit.disabled = false;
-      }
     }
 
     function ekstrakJam(str) {
       if (!str || str === '-' || str.trim() === '') return '-';
       str = str.trim();
-
       if (str.includes(' ')) {
         const parts = str.split(/\s+/);
-        for (let p of parts) {
-          if (p.includes(':')) return p;
-        }
+        for (let p of parts) { if (p.includes(':')) return p; }
       }
-
       if (str.includes(':')) return str;
-
-      const num = parseFloat(str);
-      if (!isNaN(num) && num > 0 && num < 1) {
-        const totalDetik = Math.round(num * 86400);
-        const hh = String(Math.floor(totalDetik / 3600)).padStart(2, '0');
-        const mm = String(Math.floor((totalDetik % 3600) / 60)).padStart(2, '0');
-        const ss = String(totalDetik % 60).padStart(2, '0');
-        return `${hh}:${mm}:${ss}`;
-      }
-
       return str;
     }
 
     function hitungMenitDurasi(strDurasi) {
       if (!strDurasi || strDurasi === '-' || strDurasi.trim() === '') return 0;
       strDurasi = strDurasi.trim();
-
       if (strDurasi.includes(':')) {
         const parts = strDurasi.split(':').map(Number);
-        if (parts.length === 3) {
-          return (parts[0] * 60) + parts[1] + (parts[2] / 60);
-        } else if (parts.length === 2) {
-          return (parts[0] * 60) + parts[1];
-        }
+        if (parts.length === 3) return (parts[0] * 60) + parts[1] + (parts[2] / 60);
+        if (parts.length === 2) return (parts[0] * 60) + parts[1];
       }
-
-      const jamMatch = strDurasi.match(/(\d+)\s*(jam|hr|hour)/i);
-      const menitMatch = strDurasi.match(/(\d+)\s*(menit|min)/i);
-      let total = 0;
-      if (jamMatch) total += parseInt(jamMatch[1], 10) * 60;
-      if (menitMatch) total += parseInt(menitMatch[1], 10);
-
-      return total;
+      return 0;
     }
 
     function parseStringDate(str) {
       if (!str || str === '-' || str.trim() === '') return null;
-      str = str.trim();
-
-      if (str.includes(' ') && str.includes(':')) {
-        str = str.split(' ')[0];
-      }
-
-      const monthMap = {
-        january:0, jan:0, february:1, feb:1, march:2, mar:2, april:3, apr:3,
-        may:4, june:5, jun:5, july:6, jul:6, august:7, aug:7,
-        september:8, sep:8, oct:9, october:9, november:10, nov:10, december:11, dec:11
-      };
-
+      str = str.trim().split(' ')[0];
+      const monthMap = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
       const parts = str.split(/[\s\-]+/);
       if (parts.length === 3) {
         const d = parseInt(parts[0], 10);
-        const mStr = parts[1].toLowerCase();
+        const mStr = parts[1].toLowerCase().slice(0, 3);
         let y = parseInt(parts[2], 10);
-
         if (!isNaN(d) && !isNaN(y) && monthMap[mStr] !== undefined) {
           if (y < 100) y += 2000;
           return new Date(y, monthMap[mStr], d);
         }
       }
-
-      const partsSlash = str.split('/');
-      if (partsSlash.length === 3) {
-        const m = parseInt(partsSlash[0], 10) - 1;
-        const d = parseInt(partsSlash[1], 10);
-        let y = parseInt(partsSlash[2], 10);
-        if (y < 100) y += 2000;
-        if (!isNaN(m) && !isNaN(d) && !isNaN(y)) {
-          return new Date(y, m, d);
-        }
-      }
-
-      const dt = new Date(str);
-      if (!isNaN(dt.getTime())) {
-        dt.setHours(0,0,0,0);
-        return dt;
-      }
-
       return null;
     }
 
@@ -663,35 +499,20 @@
       let row = [];
       let inQuotes = false;
       let current = '';
-
       for (let i = 0; i < text.length; i++) {
         const char = text[i];
         const nextChar = text[i + 1];
-
         if (char === '"') {
-          if (inQuotes && nextChar === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
+          if (inQuotes && nextChar === '"') { current += '"'; i++; } 
+          else { inQuotes = !inQuotes; }
         } else if (char === ',' && !inQuotes) {
-          row.push(current);
-          current = '';
+          row.push(current); current = '';
         } else if ((char === '\r' || char === '\n') && !inQuotes) {
           if (char === '\r' && nextChar === '\n') i++;
-          row.push(current);
-          lines.push(row);
-          row = [];
-          current = '';
-        } else {
-          current += char;
-        }
+          row.push(current); lines.push(row); row = []; current = '';
+        } else { current += char; }
       }
-      if (current !== '' || row.length > 0) {
-        row.push(current);
-        lines.push(row);
-      }
+      if (current !== '' || row.length > 0) { row.push(current); lines.push(row); }
       return lines;
     }
 
@@ -706,8 +527,7 @@
         let startRowIndex = 1;
         for (let i = 0; i < Math.min(baris.length, 10); i++) {
           if (baris[i] && baris[i][0] && !isNaN(baris[i][0].trim())) {
-            startRowIndex = i;
-            break;
+            startRowIndex = i; break;
           }
         }
 
@@ -721,17 +541,12 @@
             let rawWaktuUp = b[4] ? ekstrakJam(b[4]) : '-';
             const rawDurasiSheet = b[5] ? ekstrakJam(b[5]) : '-';
             const rawSLA = b[6] ? b[6].trim() : '-';
-            
             const rawStasiun = b[7] ? b[7].trim() : '-';
             const rawCategory = b[8] ? b[8].trim() : '-';
             const rawBrand = b[9] ? b[9].trim() : '-';
             const rawProblem = b[10] ? b[10].trim() : '-';
             const rawAction = b[11] ? b[11].trim() : '-';
-            
-            const rawStatus = b[17] ? b[17].trim() : (b[12] ? b[12].trim() : 'RUNNING');
-
-            const parsedObjDate = parseStringDate(rawTglDown);
-            const durasiMenit = hitungMenitDurasi(rawDurasiSheet);
+            const rawStatus = b[12] ? b[12].trim() : 'RUNNING';
 
             return {
               no: rawNo,
@@ -743,9 +558,9 @@
               tanggalUp: rawTglUp,
               waktuUp: rawWaktuUp,
               durasi: rawDurasiSheet,
-              durasiMenit: durasiMenit,
+              durasiMenit: hitungMenitDurasi(rawDurasiSheet),
               slaCategory: rawSLA,
-              dateObj: parsedObjDate,
+              dateObj: parseStringDate(rawTglDown),
               problem: rawProblem,
               action: rawAction,
               status: rawStatus
@@ -756,7 +571,7 @@
         terapkanFilter();
 
         const skrg = new Date().toLocaleTimeString('id-ID');
-        document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg;
+        document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg + " WIB";
 
       } catch (err) {
         console.error("Gagal narik data:", err);
@@ -764,25 +579,36 @@
     }
 
     function updateDropdowns() {
-      const selectStasiun = document.getElementById("filter-stasiun");
-      const selectCategory = document.getElementById("filter-category");
-      const selectModalStasiun = document.getElementById("input-stasiun");
+      const selectStasiun = $("#filter-stasiun");
+      const selectCategory = $("#filter-category");
+      const selectModalStasiun = $("#input-stasiun");
 
-      const currentStasiun = selectStasiun.value;
-      const currentCategory = selectCategory.value;
-      const currentModalStasiun = selectModalStasiun.value;
+      const currStasiun = selectStasiun.val();
+      const currCat = selectCategory.val();
 
       const stasiunUnik = [...new Set(mappedData.map(d => d.stasiun).filter(s => s !== '-' && s !== ''))].sort();
-      
-      selectStasiun.innerHTML = '<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
-        stasiunUnik.map(s => `<option value="${s}" ${s === currentStasiun ? 'selected' : ''}>${s}</option>`).join('');
-
-      selectModalStasiun.innerHTML = '<option value="">-- Pilih Stasiun --</option>' + 
-        stasiunUnik.map(s => `<option value="${s}" ${s === currentModalStasiun ? 'selected' : ''}>${s}</option>`).join('');
-
       const categoryUnik = [...new Set(mappedData.map(d => d.category).filter(c => c !== '-' && c !== ''))].sort();
-      selectCategory.innerHTML = '<option value="">Semua Category</option>' + 
-        categoryUnik.map(c => `<option value="${c}" ${c === currentCategory ? 'selected' : ''}>${c}</option>`).join('');
+
+      selectStasiun.html('<option value="">Semua Stasiun (' + stasiunUnik.length + ')</option>' + 
+        stasiunUnik.map(s => `<option value="${s}">${s}</option>`).join(''));
+      
+      selectModalStasiun.html('<option value="">-- Pilih Stasiun --</option>' + 
+        stasiunUnik.map(s => `<option value="${s}">${s}</option>`).join(''));
+
+      selectCategory.html('<option value="">Semua Category</option>' + 
+        categoryUnik.map(c => `<option value="${c}">${c}</option>`).join(''));
+
+      selectStasiun.val(currStasiun);
+      selectCategory.val(currCat);
+
+      // Inisialisasi Searchable Dropdown Select2
+      $('#filter-stasiun').select2({ placeholder: "Cari Stasiun...", allowClear: true, width: '100%' });
+      $('#filter-category').select2({ placeholder: "Cari Category...", allowClear: true, width: '100%' });
+      $('#input-stasiun').select2({ dropdownParent: $('#modal-form'), placeholder: "-- Pilih Stasiun --", width: '100%' });
+
+      $('#filter-stasiun, #filter-category').off('change').on('change', function() {
+        terapkanFilter();
+      });
     }
 
     function handleChartClick(type, value) {
@@ -805,8 +631,8 @@
 
     function terapkanFilter() {
       const kw = document.getElementById("search-input").value.toLowerCase();
-      const stasiun = document.getElementById("filter-stasiun").value;
-      const category = document.getElementById("filter-category").value;
+      const stasiun = $('#filter-stasiun').val();
+      const category = $('#filter-category').val();
 
       const hasil = mappedData.filter(item => {
         const cocokKw = Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(kw));
@@ -820,25 +646,14 @@
             const end = setZeroTime(selectedEndDate);
             const target = setZeroTime(item.dateObj);
             cocokTanggal = target >= start && target <= end;
-          } else {
-            cocokTanggal = false;
-          }
+          } else { cocokTanggal = false; }
         }
 
         let cocokChart = true;
-        if (chartClickFilter.type === 'tanggal') {
-          cocokChart = item.tanggalDown === chartClickFilter.value;
-        } else if (chartClickFilter.type === 'category') {
-          cocokChart = item.category === chartClickFilter.value;
-        } else if (chartClickFilter.type === 'stasiun') {
-          cocokChart = item.stasiun === chartClickFilter.value;
-        } else if (chartClickFilter.type === 'sla') {
-          if (chartClickFilter.value === '< 4 Hour') {
-            cocokChart = item.durasiMenit > 0 && item.durasiMenit <= 240;
-          } else if (chartClickFilter.value === '> 4 Hour') {
-            cocokChart = item.durasiMenit > 240;
-          }
-        }
+        if (chartClickFilter.type === 'tanggal') cocokChart = item.tanggalDown === chartClickFilter.value;
+        else if (chartClickFilter.type === 'category') cocokChart = item.category === chartClickFilter.value;
+        else if (chartClickFilter.type === 'stasiun') cocokChart = item.stasiun === chartClickFilter.value;
+        else if (chartClickFilter.type === 'sla') cocokChart = item.slaCategory === chartClickFilter.value;
 
         return cocokKw && cocokStasiun && cocokCategory && cocokTanggal && cocokChart;
       });
@@ -849,32 +664,25 @@
 
     function resetFilter() {
       document.getElementById("search-input").value = "";
-      document.getElementById("filter-stasiun").value = "";
-      document.getElementById("filter-category").value = "";
-      
-      if (fpInstance) { fpInstance.clear(); }
+      $('#filter-stasiun').val(null).trigger('change.select2');
+      $('#filter-category').val(null).trigger('change.select2');
+      if (fpInstance) fpInstance.clear();
       selectedStartDate = null;
       selectedEndDate = null;
-
       resetChartClickFilter();
     }
 
     function renderTabel(data) {
       const tbody = document.getElementById("isi-tabel");
-
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok dengan filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok.</td></tr>`;
         return;
       }
-
       let html = '';
       data.forEach((item) => {
         let statusBadge = `<span class="badge badge-down">${item.status}</span>`;
-        if (/progress|penanganan/i.test(item.status)) {
-          statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
-        } else if (/running|resolved|clear|close|up|selesai/i.test(item.status)) {
-          statusBadge = `<span class="badge badge-running">${item.status}</span>`;
-        }
+        if (/progress/i.test(item.status)) statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
+        else if (/running|close/i.test(item.status)) statusBadge = `<span class="badge badge-running">${item.status}</span>`;
 
         html += `<tr>
           <td>${item.no}</td>
@@ -889,18 +697,14 @@
           <td>${item.problem}</td>
           <td>${item.action}</td>
           <td>${statusBadge}</td>
-          <td>
-            <button class="btn-edit-row" onclick="editData('${item.no}')">✏️ Edit</button>
-          </td>
+          <td><button class="btn-edit-row" onclick="editData('${item.no}')">✏️ Edit</button></td>
         </tr>`;
       });
-
       tbody.innerHTML = html;
     }
 
     function updateAnalytics(data) {
       document.getElementById("total-record-count").innerText = data.length;
-
       renderTrendHarian(data);
       renderPieCategory(data);
       renderBarTopStasiun(data);
@@ -910,177 +714,75 @@
 
     function renderTrendHarian(data) {
       const counts = {};
-      data.forEach(d => {
-        if (d.tanggalDown && d.tanggalDown !== '-') {
-          counts[d.tanggalDown] = (counts[d.tanggalDown] || 0) + 1;
-        }
-      });
-
+      data.forEach(d => { if (d.tanggalDown && d.tanggalDown !== '-') counts[d.tanggalDown] = (counts[d.tanggalDown] || 0) + 1; });
       const labels = Object.keys(counts);
       const values = Object.values(counts);
 
       if (chartTrendHarianInstance) chartTrendHarianInstance.destroy();
-
       const ctx = document.getElementById('chartTrendHarian').getContext('2d');
       chartTrendHarianInstance = new Chart(ctx, {
         type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Jumlah Gangguan',
-            data: values,
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.15)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 5,
-            pointBackgroundColor: '#38bdf8'
-          }]
-        },
+        data: { labels, datasets: [{ label: 'Gangguan', data: values, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', fill: true, tension: 0.3 }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            datalabels: { color: '#f8fafc', anchor: 'end', align: 'top', font: { weight: 'bold' } }
-          },
-          onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              handleChartClick('tanggal', labels[idx]);
-            }
-          },
-          scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' } },
-            y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: '#2e3d5c' } }
-          }
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, datalabels: { color: '#f8fafc', anchor: 'end', align: 'top' } },
+          onClick: (evt, activeEls) => { if (activeEls.length > 0) handleChartClick('tanggal', labels[activeEls[0].index]); }
         }
       });
     }
 
     function renderPieCategory(data) {
       const counts = {};
-      data.forEach(d => {
-        if (d.category && d.category !== '-') {
-          counts[d.category] = (counts[d.category] || 0) + 1;
-        }
-      });
-
+      data.forEach(d => { if (d.category && d.category !== '-') counts[d.category] = (counts[d.category] || 0) + 1; });
       const labels = Object.keys(counts);
       const values = Object.values(counts);
 
       if (pieCategoryInstance) pieCategoryInstance.destroy();
-
       const ctx = document.getElementById('pieChartCategory').getContext('2d');
       pieCategoryInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#8b5cf6', '#64748b']
-          }]
-        },
+        data: { labels, datasets: [{ data: values, backgroundColor: ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#8b5cf6'] }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12 } },
-            datalabels: { color: '#ffffff', font: { weight: 'bold' } }
-          },
-          onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              handleChartClick('category', labels[idx]);
-            }
-          }
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } },
+          onClick: (evt, activeEls) => { if (activeEls.length > 0) handleChartClick('category', labels[activeEls[0].index]); }
         }
       });
     }
 
     function renderBarTopStasiun(data) {
       const counts = {};
-      data.forEach(d => {
-        if (d.stasiun && d.stasiun !== '-') {
-          counts[d.stasiun] = (counts[d.stasiun] || 0) + 1;
-        }
-      });
-
+      data.forEach(d => { if (d.stasiun && d.stasiun !== '-') counts[d.stasiun] = (counts[d.stasiun] || 0) + 1; });
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
       const labels = sorted.map(s => s[0]);
       const values = sorted.map(s => s[1]);
 
       if (barTopStasiunInstance) barTopStasiunInstance.destroy();
-
       const ctx = document.getElementById('barTopStasiun').getContext('2d');
       barTopStasiunInstance = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: '#38bdf8',
-            borderRadius: 6
-          }]
-        },
+        data: { labels, datasets: [{ data: values, backgroundColor: '#38bdf8', borderRadius: 6 }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            datalabels: { color: '#ffffff', anchor: 'end', align: 'top', font: { weight: 'bold' } }
-          },
-          onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              handleChartClick('stasiun', labels[idx]);
-            }
-          },
-          scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: '#2e3d5c' } }
-          }
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          onClick: (evt, activeEls) => { if (activeEls.length > 0) handleChartClick('stasiun', labels[activeEls[0].index]); }
         }
       });
     }
 
     function renderPieSLA(data) {
-      let under4 = 0;
-      let over4 = 0;
-
-      data.forEach(d => {
-        if (d.durasiMenit > 0) {
-          if (d.durasiMenit <= 240) under4++;
-          else over4++;
-        }
-      });
+      let under4 = 0, over4 = 0;
+      data.forEach(d => { if (d.slaCategory === '< 4 Hour') under4++; else if (d.slaCategory === '> 4 Hour') over4++; });
 
       if (pieSLAInstance) pieSLAInstance.destroy();
-
       const ctx = document.getElementById('pieChartSLA').getContext('2d');
       pieSLAInstance = new Chart(ctx, {
         type: 'pie',
-        data: {
-          labels: ['< 4 Hour', '> 4 Hour'],
-          datasets: [{
-            data: [under4, over4],
-            backgroundColor: ['#22c55e', '#ef4444']
-          }]
-        },
+        data: { labels: ['< 4 Hour', '> 4 Hour'], datasets: [{ data: [under4, over4], backgroundColor: ['#22c55e', '#ef4444'] }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12 } },
-            datalabels: { color: '#ffffff', font: { weight: 'bold' } }
-          },
-          onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              const labels = ['< 4 Hour', '> 4 Hour'];
-              handleChartClick('sla', labels[idx]);
-            }
-          }
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } },
+          onClick: (evt, activeEls) => { if (activeEls.length > 0) handleChartClick('sla', ['< 4 Hour', '> 4 Hour'][activeEls[0].index]); }
         }
       });
     }
@@ -1091,9 +793,7 @@
       const bodyContainer = document.getElementById('sla-table-body');
 
       let headerHTML = `<th>WAKTU SOLVING</th>`;
-      categories.forEach(cat => {
-        headerHTML += `<th>${cat}</th>`;
-      });
+      categories.forEach(cat => headerHTML += `<th>${cat}</th>`);
       headerHTML += `<th>Grand Total</th>`;
       headerRow.innerHTML = headerHTML;
 
@@ -1103,20 +803,11 @@
       slaGroups.forEach(sla => {
         bodyHTML += `<tr><td style="font-weight: bold; text-align: left;">${sla}</td>`;
         let rowTotal = 0;
-
         categories.forEach(cat => {
-          const count = data.filter(d => {
-            const isCat = d.category === cat;
-            let isSla = false;
-            if (sla === '< 4 Hour') isSla = d.durasiMenit > 0 && d.durasiMenit <= 240;
-            else isSla = d.durasiMenit > 240;
-            return isCat && isSla;
-          }).length;
-
+          const count = data.filter(d => d.category === cat && d.slaCategory === sla).length;
           rowTotal += count;
           bodyHTML += `<td>${count}</td>`;
         });
-
         bodyHTML += `<td class="highlight-cell">${rowTotal}</td></tr>`;
       });
 
@@ -1128,8 +819,68 @@
         bodyHTML += `<td style="color: #38bdf8;">${catTotal}</td>`;
       });
       bodyHTML += `<td style="color: #38bdf8; font-weight: 800;">${grandTotalAll}</td></tr>`;
-
       bodyContainer.innerHTML = bodyHTML;
+    }
+
+    async function simpanData(e) {
+      e.preventDefault();
+      const btnSubmit = document.getElementById("btn-submit-form");
+      btnSubmit.innerText = "Mengirim...";
+      btnSubmit.disabled = true;
+
+      const editNo = document.getElementById("edit-no").value;
+      const payload = {
+        actionType: editNo ? "UPDATE" : "CREATE",
+        no: editNo,
+        tanggalDown: document.getElementById("input-tgl-down").value,
+        waktuDown: document.getElementById("input-waktu-down-picker").value ? document.getElementById("input-waktu-down-picker").value.replace('T', ' ') : "-",
+        tanggalUp: document.getElementById("input-tgl-up").value,
+        waktuUp: document.getElementById("input-waktu-up-picker").value ? document.getElementById("input-waktu-up-picker").value.replace('T', ' ') : "-",
+        durasi: document.getElementById("input-durasi").value,
+        waktuSolving: document.getElementById("input-sla").value,
+        stasiun: $('#input-stasiun').val(),
+        category: document.getElementById("input-category").value,
+        brand: document.getElementById("input-brand").value,
+        problem: document.getElementById("input-problem").value,
+        action: document.getElementById("input-action").value,
+        status: document.getElementById("input-status").value
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        alert(editNo ? "Data diperbarui!" : "Data disimpan!");
+        tutupModal();
+        setTimeout(ambilData, 600);
+      } catch (err) {
+        alert("Proses simpan selesai.");
+        tutupModal();
+        setTimeout(ambilData, 600);
+      } finally {
+        btnSubmit.innerText = "Simpan ke Google Sheets";
+        btnSubmit.disabled = false;
+      }
+    }
+
+    function hitungDurasiOtomatis() {
+      const valDown = document.getElementById("input-waktu-down-picker").value;
+      const valUp = document.getElementById("input-waktu-up-picker").value;
+      if (valDown && valUp) {
+        const dtDown = new Date(valDown);
+        const dtUp = new Date(valUp);
+        const diffMs = dtUp - dtDown;
+        if (diffMs > 0) {
+          const totalSec = Math.floor(diffMs / 1000);
+          const hh = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+          const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+          const ss = String(totalSec % 60).padStart(2, '0');
+          document.getElementById("input-durasi").value = `${hh}:${mm}:${ss}`;
+          document.getElementById("input-sla").value = (diffMs / 3600000) <= 4 ? "< 4 Hour" : "> 4 Hour";
+        }
+      }
     }
   </script>
 </body>
