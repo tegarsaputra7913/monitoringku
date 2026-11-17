@@ -25,10 +25,9 @@
     
     .header-actions { display: flex; align-items: center; gap: 12px; }
     .status-badge { background: #182238; border: 1px solid #2e3d5c; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
-    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.9); } }
+    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
 
-    .btn-add { background: #38bdf8; color: #0b1329; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-add { background: #38bdf8; color: #0b1329; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
     .btn-add:hover { background: #0284c7; color: #ffffff; }
 
     /* Panel Filter Grid */
@@ -38,7 +37,7 @@
     .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; cursor: pointer; }
     .filter-control:focus { border-color: #38bdf8; }
     
-    .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; height: 40px; }
+    .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; height: 40px; }
     .btn-reset:hover { background: rgba(239, 68, 68, 0.3); }
 
     .active-filter-badge { background: rgba(56, 189, 248, 0.2); border: 1px dashed #38bdf8; color: #38bdf8; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; }
@@ -65,7 +64,8 @@
     .highlight-cell { background: rgba(56, 189, 248, 0.1); font-weight: bold; color: #38bdf8; }
 
     /* Table Main */
-    .table-container { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); }
+    .table-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: #94a3b8; }
+    .table-container { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; overflow: hidden; }
     .table-wrapper { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
     th { background-color: #0f172a; color: #94a3b8; font-weight: 600; padding: 16px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid #2e3d5c; white-space: nowrap; }
@@ -82,13 +82,13 @@
     .badge-progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
     .badge-resolved, .badge-running { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
 
-    .btn-edit-row { background: #f59e0b; color: #0b1329; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 11px; transition: all 0.2s; }
+    .btn-edit-row { background: #f59e0b; color: #0b1329; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 11px; }
     .btn-edit-row:hover { background: #d97706; color: #ffffff; }
 
     .last-update { font-size: 12px; color: #64748b; text-align: right; margin-top: 16px; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; width: 100%; max-width: 650px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
+    .modal-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; width: 100%; max-width: 650px; padding: 24px; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #2e3d5c; padding-bottom: 12px; }
     .modal-header h2 { font-size: 18px; color: #ffffff; }
     .close-modal { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
@@ -98,16 +98,15 @@
     .form-group label { display: block; font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px; }
     .form-control { width: 100%; background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
     .form-control:focus { border-color: #38bdf8; }
-    .form-control[readonly] { background: #131d35; color: #94a3b8; cursor: not-allowed; }
 
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-cancel { background: #334155; color: #f8fafc; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
     .btn-submit { background: #38bdf8; color: #0b1329; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .flatpickr-calendar { background: #182238 !important; border: 1px solid #2e3d5c !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
+    .flatpickr-calendar { background: #182238 !important; border: 1px solid #2e3d5c !important; }
     .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #38bdf8 !important; border-color: #38bdf8 !important; color: #0b1329 !important; font-weight: bold; }
-    .flatpickr-day.inRange { background: rgba(56, 189, 248, 0.2) !important; box-shadow: -5px 0 0 rgba(56, 189, 248, 0.2), 5px 0 0 rgba(56, 189, 248, 0.2) !important; }
+    .flatpickr-day.inRange { background: rgba(56, 189, 248, 0.2) !important; }
   </style>
 </head>
 <body>
@@ -131,7 +130,7 @@
     <div class="filter-card">
       <div class="filter-group">
         <label>Cari Kata Kunci</label>
-        <input type="text" id="search-input" class="filter-control" placeholder="Cari Stasiun, Problem, Action..." oninput="terapkanFilter()">
+        <input type="text" id="search-input" class="filter-control" placeholder="Cari Stasiun, Problem, Action..." oninput="debounceFilter()">
       </div>
 
       <div class="filter-group">
@@ -219,6 +218,12 @@
       </div>
     </div>
 
+    <!-- Info Filter Tabel -->
+    <div class="table-header-info">
+      <span id="table-filter-note">Menampilkan data tabel mulai: <b>1 Juni 2026 - Sekarang</b></span>
+      <span id="table-row-count">Total baris tampil: 0</span>
+    </div>
+
     <!-- Tabel Data Utama -->
     <div class="table-container">
       <div class="table-wrapper">
@@ -262,19 +267,16 @@
         <button class="close-modal" onclick="tutupModal()">&times;</button>
       </div>
       <form id="form-olt" onsubmit="simpanData(event)">
-        <!-- Hidden input penanda ID baris yang sedang diedit -->
         <input type="hidden" id="edit-no" value="">
 
         <div class="form-grid">
-          <!-- Stasiun dengan Dropdown Custom Searchable -->
           <div class="form-group" style="position: relative;">
             <label>Stasiun</label>
             <input type="text" id="input-stasiun" class="form-control" placeholder="🔍 Cari / Pilih Stasiun..." onfocus="bukaDropdownStasiun()" oninput="filterDropdownStasiun()" autocomplete="off" required>
-            <div id="dropdown-stasiun-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 220px; overflow-y: auto; background: #0f172a; border: 1px solid #2e3d5c; border-radius: 6px; z-index: 1050; margin-top: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.7);">
+            <div id="dropdown-stasiun-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 220px; overflow-y: auto; background: #0f172a; border: 1px solid #2e3d5c; border-radius: 6px; z-index: 1050; margin-top: 4px;">
             </div>
           </div>
 
-          <!-- Category Sesuai Gambar Terbaru -->
           <div class="form-group">
             <label>Category</label>
             <select id="input-category" class="form-control" required>
@@ -300,7 +302,6 @@
             </select>
           </div>
 
-          <!-- Brand & Status -->
           <div class="form-group">
             <label>Brand OLT</label>
             <select id="input-brand" class="form-control" required>
@@ -323,7 +324,6 @@
             </select>
           </div>
 
-          <!-- Waktu Down Picker -->
           <div class="form-group">
             <label>Waktu Down (Pilih Tanggal & Jam)</label>
             <input type="datetime-local" id="input-waktu-down-picker" class="form-control" onchange="hitungDurasiOtomatis()">
@@ -333,7 +333,6 @@
             <input type="text" id="input-tgl-down" class="form-control" placeholder="Terisi Otomatis">
           </div>
 
-          <!-- Waktu Up Picker -->
           <div class="form-group">
             <label>Waktu Up (Pilih Tanggal & Jam)</label>
             <input type="datetime-local" id="input-waktu-up-picker" class="form-control" onchange="hitungDurasiOtomatis()">
@@ -343,7 +342,6 @@
             <input type="text" id="input-tgl-up" class="form-control" placeholder="Terisi Otomatis">
           </div>
 
-          <!-- Durasi & SLA -->
           <div class="form-group">
             <label>Durasi (Auto/Manual)</label>
             <input type="text" id="input-durasi" class="form-control" placeholder="00:00:00">
@@ -356,7 +354,6 @@
             </select>
           </div>
 
-          <!-- Problem & Action -->
           <div class="form-group form-group-full">
             <label>Problem / Masalah</label>
             <textarea id="input-problem" class="form-control" rows="2" placeholder="Deskripsi problem..."></textarea>
@@ -385,6 +382,9 @@
     
     let mappedData = [];
     let daftarStasiunUnik = [];
+    let lastCsvText = ""; // Cache untuk mencegah re-render jika data tidak berubah
+    let searchTimeout = null;
+
     let fpInstance = null;
     let selectedStartDate = null;
     let selectedEndDate = null;
@@ -396,6 +396,8 @@
     let pieSLAInstance = null;
 
     Chart.register(ChartDataLabels);
+    // Matikan animasi global Chart.js agar tidak lag saat render/filter
+    Chart.defaults.animation = false;
 
     document.addEventListener("DOMContentLoaded", function() {
       fpInstance = flatpickr("#filter-date-range", {
@@ -428,7 +430,6 @@
       setInterval(ambilData, 10000);
     });
 
-    // Menutup dropdown custom stasiun saat user klik di luar elemen
     document.addEventListener("click", function(e) {
       const container = document.getElementById("dropdown-stasiun-list");
       const input = document.getElementById("input-stasiun");
@@ -441,6 +442,13 @@
       const d = new Date(date);
       d.setHours(0, 0, 0, 0);
       return d;
+    }
+
+    function debounceFilter() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        terapkanFilter();
+      }, 250);
     }
 
     function bukaModal() { 
@@ -463,7 +471,6 @@
       if (!item) return alert("Data tidak ditemukan!");
 
       document.getElementById("edit-no").value = item.no;
-
       document.getElementById("input-stasiun").value = item.stasiun !== '-' ? item.stasiun : '';
       document.getElementById("input-category").value = item.category !== '-' ? item.category : 'FO Cut';
       document.getElementById("input-brand").value = item.brand !== '-' ? item.brand : 'HUAWEI';
@@ -479,7 +486,6 @@
 
       document.getElementById("modal-title").innerText = `Edit Data OLT (No: ${item.no})`;
       document.getElementById("btn-submit-form").innerText = "Update Data Ke Google Sheets";
-
       document.getElementById("modal-form").style.display = "flex";
     }
 
@@ -531,11 +537,7 @@
           document.getElementById("input-durasi").value = `${hh}:${mm}:${ss}`;
 
           const diffHours = diffMs / (1000 * 60 * 60);
-          if (diffHours <= 4) {
-            document.getElementById("input-sla").value = "< 4 Hour";
-          } else {
-            document.getElementById("input-sla").value = "> 4 Hour";
-          }
+          document.getElementById("input-sla").value = diffHours <= 4 ? "< 4 Hour" : "> 4 Hour";
         }
       }
     }
@@ -577,12 +579,14 @@
           body: JSON.stringify(payload)
         });
 
+        lastCsvText = ""; // Reset cache agar data baru langsung diambil
         alert(editNo ? "Data berhasil diperbarui di Google Sheets!" : "Data berhasil disimpan ke Google Sheets!");
         tutupModal();
         setTimeout(ambilData, 600);
 
       } catch (err) {
         console.error("Gagal simpan:", err);
+        lastCsvText = "";
         alert("Proses simpan selesai.");
         tutupModal();
         setTimeout(ambilData, 600);
@@ -726,8 +730,17 @@
       try {
         const respon = await fetch(FETCH_URL + "&_=" + new Date().getTime());
         const teks = await respon.text();
-        const baris = parseCSV(teks);
 
+        const skrg = new Date().toLocaleTimeString('id-ID');
+
+        // ANTI-LAG: Jika tidak ada perubahan data di Google Sheets, jangan render ulang DOM & Chart
+        if (teks === lastCsvText) {
+          document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg + " (Stabil)";
+          return;
+        }
+        lastCsvText = teks;
+
+        const baris = parseCSV(teks);
         if (baris.length < 2) return;
 
         let startRowIndex = 1;
@@ -754,7 +767,6 @@
             const rawBrand = b[9] ? b[9].trim() : '-';
             const rawProblem = b[10] ? b[10].trim() : '-';
             const rawAction = b[11] ? b[11].trim() : '-';
-            
             const rawStatus = b[17] ? b[17].trim() : (b[12] ? b[12].trim() : 'RUNNING');
 
             const parsedObjDate = parseStringDate(rawTglDown);
@@ -782,7 +794,6 @@
         updateDropdowns();
         terapkanFilter();
 
-        const skrg = new Date().toLocaleTimeString('id-ID');
         document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg;
 
       } catch (err) {
@@ -809,7 +820,6 @@
       renderListStasiunModal(daftarStasiunUnik);
     }
 
-    /* --- DROPDOWN CUSTOM STASIUN SEARCHABLE UNTUK MODAL --- */
     function renderListStasiunModal(list) {
       const container = document.getElementById("dropdown-stasiun-list");
       if (!container) return;
@@ -821,7 +831,7 @@
 
       container.innerHTML = list.map(st => `
         <div onclick="pilihStasiunModal('${st.replace(/'/g, "\\'")}')" 
-             style="padding: 10px 12px; cursor: pointer; color: #f8fafc; font-size: 13px; border-bottom: 1px solid #1e293b; transition: background 0.15s;" 
+             style="padding: 10px 12px; cursor: pointer; color: #f8fafc; font-size: 13px; border-bottom: 1px solid #1e293b;" 
              onmouseover="this.style.background='#1e293b'" 
              onmouseout="this.style.background='transparent'">
           ${st}
@@ -870,7 +880,7 @@
       const category = document.getElementById("filter-category").value;
 
       const hasil = mappedData.filter(item => {
-        const cocokKw = Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(kw));
+        const cocokKw = !kw || Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(kw));
         const cocokStasiun = !stasiun || item.stasiun === stasiun;
         const cocokCategory = !category || item.category === category;
 
@@ -922,14 +932,30 @@
 
     function renderTabel(data) {
       const tbody = document.getElementById("isi-tabel");
+      const noteEl = document.getElementById("table-filter-note");
+      const countEl = document.getElementById("table-row-count");
 
-      if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT yang cocok dengan filter.</td></tr>`;
+      // Batas default tampilan tabel: mulai 1 Juni 2026 sampai sekarang
+      const batasTanggalTabel = new Date(2026, 5, 1); // Juni = index 5
+      batasTanggalTabel.setHours(0, 0, 0, 0);
+
+      let dataTabel = data;
+      if (selectedStartDate || selectedEndDate) {
+        noteEl.innerHTML = `Menampilkan data tabel sesuai <b>Filter Kalender</b>`;
+      } else {
+        noteEl.innerHTML = `Menampilkan data tabel mulai: <b>1 Juni 2026 - Sekarang</b>`;
+        dataTabel = data.filter(item => item.dateObj && setZeroTime(item.dateObj) >= batasTanggalTabel);
+      }
+
+      countEl.innerText = `Total baris tampil: ${dataTabel.length}`;
+
+      if (dataTabel.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT (mulai Juni 2026) yang cocok dengan filter.</td></tr>`;
         return;
       }
 
       let html = '';
-      data.forEach((item) => {
+      dataTabel.forEach((item) => {
         let statusBadge = `<span class="badge badge-down">${item.status}</span>`;
         if (/progress|penanganan/i.test(item.status)) {
           statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
