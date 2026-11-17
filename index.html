@@ -6,11 +6,9 @@
   <title>Monitoring Status OLT Down Stasiun</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Flatpickr Date Picker CSS (Dark Theme) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 
-  <!-- Chart.js & Datalabels Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
@@ -27,17 +25,16 @@
     .status-badge { background: #182238; border: 1px solid #2e3d5c; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
     .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
 
-    .btn-add { background: #38bdf8; color: #0b1329; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-add { background: #38bdf8; color: #0b1329; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .btn-add:hover { background: #0284c7; color: #ffffff; }
 
-    /* Panel Filter Grid */
     .filter-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: end; }
     .filter-group { display: flex; flex-direction: column; gap: 6px; }
     .filter-group label { font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; cursor: pointer; }
+    .filter-control { background: #0b1329; border: 1px solid #2e3d5c; color: #f8fafc; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer; }
     .filter-control:focus { border-color: #38bdf8; }
     
-    .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; height: 40px; }
+    .btn-reset { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; height: 40px; }
     .btn-reset:hover { background: rgba(239, 68, 68, 0.3); }
 
     .active-filter-badge { background: rgba(56, 189, 248, 0.2); border: 1px dashed #38bdf8; color: #38bdf8; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; }
@@ -55,21 +52,18 @@
 
     .pie-box { height: 260px; position: relative; }
 
-    /* Matriks SLA Table */
     .sla-table-container { margin-top: 16px; overflow-x: auto; }
     .sla-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .sla-table th { background: #0f172a; color: #38bdf8; padding: 10px; border: 1px solid #2e3d5c; text-align: center; font-weight: 700; }
     .sla-table td { padding: 10px; border: 1px solid #2e3d5c; text-align: center; color: #f8fafc; }
-    .sla-table tr:hover { background: #1f2d4a; }
     .highlight-cell { background: rgba(56, 189, 248, 0.1); font-weight: bold; color: #38bdf8; }
 
-    /* Table Main */
-    .table-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: #94a3b8; }
+    .table-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: #94a3b8; flex-wrap: wrap; gap: 10px; }
     .table-container { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; overflow: hidden; }
     .table-wrapper { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-    th { background-color: #0f172a; color: #94a3b8; font-weight: 600; padding: 16px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid #2e3d5c; white-space: nowrap; }
-    td { padding: 14px 16px; border-bottom: 1px solid #2e3d5c; color: #cbd5e1; vertical-align: middle; }
+    th { background-color: #0f172a; color: #94a3b8; font-weight: 600; padding: 14px 16px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid #2e3d5c; white-space: nowrap; }
+    td { padding: 12px 16px; border-bottom: 1px solid #2e3d5c; color: #cbd5e1; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background-color: #1f2d4a; }
 
@@ -85,9 +79,16 @@
     .btn-edit-row { background: #f59e0b; color: #0b1329; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 11px; }
     .btn-edit-row:hover { background: #d97706; color: #ffffff; }
 
+    /* Pagination Bar */
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #0f172a; border-top: 1px solid #2e3d5c; font-size: 12px; color: #94a3b8; }
+    .pagination-btns { display: flex; gap: 8px; align-items: center; }
+    .btn-page { background: #182238; border: 1px solid #2e3d5c; color: #f8fafc; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; }
+    .btn-page:hover:not(:disabled) { border-color: #38bdf8; color: #38bdf8; }
+    .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .last-update { font-size: 12px; color: #64748b; text-align: right; margin-top: 16px; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
     .modal-card { background: #182238; border: 1px solid #2e3d5c; border-radius: 12px; width: 100%; max-width: 650px; padding: 24px; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #2e3d5c; padding-bottom: 12px; }
     .modal-header h2 { font-size: 18px; color: #ffffff; }
@@ -102,7 +103,6 @@
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-cancel { background: #334155; color: #f8fafc; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
     .btn-submit { background: #38bdf8; color: #0b1329; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .flatpickr-calendar { background: #182238 !important; border: 1px solid #2e3d5c !important; }
     .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #38bdf8 !important; border-color: #38bdf8 !important; color: #0b1329 !important; font-weight: bold; }
@@ -121,12 +121,11 @@
         <button class="btn-add" onclick="bukaModal()">+ Tambah Data OLT</button>
         <div class="status-badge">
           <span class="dot"></span>
-          <span id="sync-status">Live Sync (10s)</span>
+          <span id="sync-status">Live Sync (15s)</span>
         </div>
       </div>
     </div>
 
-    <!-- Panel Filter -->
     <div class="filter-card">
       <div class="filter-group">
         <label>Cari Kata Kunci</label>
@@ -157,14 +156,12 @@
       </div>
     </div>
 
-    <!-- Indikator Banner Filter Aktif -->
     <div id="active-filter-badge" class="active-filter-badge">
       <span id="active-filter-text">Filter Diagram Aktif: -</span>
       <button style="background: rgba(239, 68, 68, 0.2); border: 1px solid #f87171; color: #f87171; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;" onclick="resetChartClickFilter()">✕ Normalkan Diagram (Reset)</button>
     </div>
 
     <div class="dashboard-panel">
-      <!-- 1. GRAFIK TREN HARIAN ATAS -->
       <div class="chart-card">
         <div class="chart-title">Tren Jumlah Gangguan Per Tanggal (Klik titik untuk filter / klik ulang untuk normal)</div>
         <div class="counter-box">
@@ -176,7 +173,6 @@
         </div>
       </div>
 
-      <!-- 2. GRID 3 CHART BAWAH -->
       <div class="bottom-grid">
         <div class="chart-card">
           <div class="chart-title" style="text-align: center;">Category (Klik pie)</div>
@@ -200,7 +196,6 @@
         </div>
       </div>
 
-      <!-- 3. TABEL MATRIKS SLA SOLVING -->
       <div class="chart-card">
         <div class="chart-title">Total Problem / Waktu Solving SLA</div>
         <div class="sla-table-container">
@@ -211,20 +206,17 @@
                 <th>Grand Total</th>
               </tr>
             </thead>
-            <tbody id="sla-table-body">
-            </tbody>
+            <tbody id="sla-table-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Info Filter Tabel -->
     <div class="table-header-info">
-      <span id="table-filter-note">Menampilkan data tabel mulai: <b>1 Juni 2026 - Sekarang</b></span>
-      <span id="table-row-count">Total baris tampil: 0</span>
+      <span id="table-filter-note">Menampilkan data tabel mulai: <b>1 Juni 2026 - Sekarang</b> (Urut Terbaru)</span>
+      <span id="table-row-count">Total data: 0</span>
     </div>
 
-    <!-- Tabel Data Utama -->
     <div class="table-container">
       <div class="table-wrapper">
         <table>
@@ -253,6 +245,14 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- Pagination Bar agar browser tidak render ratusan baris sekaligus -->
+      <div class="pagination-bar">
+        <span id="page-info">Halaman 1 dari 1</span>
+        <div class="pagination-btns">
+          <button class="btn-page" id="btn-prev" onclick="gantiHalaman(-1)">← Sebelumnya</button>
+          <button class="btn-page" id="btn-next" onclick="gantiHalaman(1)">Berikutnya →</button>
+        </div>
       </div>
     </div>
 
@@ -381,8 +381,14 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLc2xaYSxCtNFPyIcCUdLx6CpDltnUUcs3EK5cB1slhLuCPYLZ5whL1alKM-8vtWj3WA/exec";
     
     let mappedData = [];
+    let currentFilteredTableData = [];
+    let currentPage = 1;
+    const ROWS_PER_PAGE = 50; // Batas render maksimal 50 baris per halaman (anti-lag)
+
     let daftarStasiunUnik = [];
-    let lastCsvText = ""; // Cache untuk mencegah re-render jika data tidak berubah
+    let lastCsvText = "";
+    let isModalOpen = false;
+    let isSaving = false;
     let searchTimeout = null;
 
     let fpInstance = null;
@@ -396,7 +402,6 @@
     let pieSLAInstance = null;
 
     Chart.register(ChartDataLabels);
-    // Matikan animasi global Chart.js agar tidak lag saat render/filter
     Chart.defaults.animation = false;
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -427,7 +432,7 @@
       
       hitungDurasiOtomatis();
       ambilData();
-      setInterval(ambilData, 10000);
+      setInterval(ambilData, 15000);
     });
 
     document.addEventListener("click", function(e) {
@@ -448,10 +453,11 @@
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         terapkanFilter();
-      }, 250);
+      }, 300);
     }
 
-    function bukaModal() { 
+    function bukaModal() {
+      isModalOpen = true;
       document.getElementById("form-olt").reset();
       document.getElementById("edit-no").value = "";
       document.getElementById("modal-title").innerText = "Input Gangguan OLT Baru";
@@ -459,7 +465,8 @@
       document.getElementById("modal-form").style.display = "flex"; 
     }
 
-    function tutupModal() { 
+    function tutupModal() {
+      isModalOpen = false;
       document.getElementById("modal-form").style.display = "none"; 
       document.getElementById("form-olt").reset();
       document.getElementById("edit-no").value = "";
@@ -470,6 +477,7 @@
       const item = mappedData.find(d => String(d.no) === String(no));
       if (!item) return alert("Data tidak ditemukan!");
 
+      isModalOpen = true;
       document.getElementById("edit-no").value = item.no;
       document.getElementById("input-stasiun").value = item.stasiun !== '-' ? item.stasiun : '';
       document.getElementById("input-category").value = item.category !== '-' ? item.category : 'FO Cut';
@@ -542,11 +550,8 @@
       }
     }
 
-    async function simpanData(e) {
+    function simpanData(e) {
       e.preventDefault();
-      const btnSubmit = document.getElementById("btn-submit-form");
-      btnSubmit.innerText = "Mengirim...";
-      btnSubmit.disabled = true;
 
       const editNo = document.getElementById("edit-no").value;
       const valDown = document.getElementById("input-waktu-down-picker").value;
@@ -555,45 +560,98 @@
       const dtDown = valDown ? new Date(valDown) : null;
       const dtUp = valUp ? new Date(valUp) : null;
 
+      const tglDownVal = document.getElementById("input-tgl-down").value || '-';
+      const waktuDownVal = dtDown ? formatWaktuSheet(dtDown) : "-";
+      const tglUpVal = document.getElementById("input-tgl-up").value || '-';
+      const waktuUpVal = dtUp ? formatWaktuSheet(dtUp) : "-";
+      const durasiVal = document.getElementById("input-durasi").value || '-';
+      const slaVal = document.getElementById("input-sla").value;
+      const stasiunVal = document.getElementById("input-stasiun").value;
+      const categoryVal = document.getElementById("input-category").value;
+      const brandVal = document.getElementById("input-brand").value;
+      const problemVal = document.getElementById("input-problem").value || '-';
+      const actionVal = document.getElementById("input-action").value || '-';
+      const statusVal = document.getElementById("input-status").value;
+
       const payload = {
         actionType: editNo ? "UPDATE" : "CREATE",
         no: editNo,
-        tanggalDown: document.getElementById("input-tgl-down").value,
-        waktuDown: dtDown ? formatWaktuSheet(dtDown) : "-",
-        tanggalUp: document.getElementById("input-tgl-up").value,
-        waktuUp: dtUp ? formatWaktuSheet(dtUp) : "-",
-        durasi: document.getElementById("input-durasi").value,
-        waktuSolving: document.getElementById("input-sla").value,
-        stasiun: document.getElementById("input-stasiun").value,
-        category: document.getElementById("input-category").value,
-        brand: document.getElementById("input-brand").value,
-        problem: document.getElementById("input-problem").value,
-        action: document.getElementById("input-action").value,
-        status: document.getElementById("input-status").value
+        tanggalDown: tglDownVal,
+        waktuDown: waktuDownVal,
+        tanggalUp: tglUpVal,
+        waktuUp: waktuUpVal,
+        durasi: durasiVal,
+        waktuSolving: slaVal,
+        stasiun: stasiunVal,
+        category: categoryVal,
+        brand: brandVal,
+        problem: problemVal,
+        action: actionVal,
+        status: statusVal
       };
 
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
+      // OPTIMISTIC UI: Langsung update tampilan lokal tanpa menunggu Google Sheets selesai menulis
+      if (editNo) {
+        const idx = mappedData.findIndex(d => String(d.no) === String(editNo));
+        if (idx !== -1) {
+          mappedData[idx].stasiun = stasiunVal;
+          mappedData[idx].category = categoryVal;
+          mappedData[idx].brand = brandVal;
+          mappedData[idx].tanggalDown = tglDownVal;
+          if (dtDown) mappedData[idx].waktuDown = ekstrakJam(waktuDownVal);
+          mappedData[idx].tanggalUp = tglUpVal;
+          if (dtUp) mappedData[idx].waktuUp = ekstrakJam(waktuUpVal);
+          mappedData[idx].durasi = durasiVal;
+          mappedData[idx].durasiMenit = hitungMenitDurasi(durasiVal);
+          mappedData[idx].slaCategory = slaVal;
+          mappedData[idx].dateObj = parseStringDate(tglDownVal);
+          mappedData[idx].problem = problemVal;
+          mappedData[idx].action = actionVal;
+          mappedData[idx].status = statusVal;
+        }
+      } else {
+        const maxNo = mappedData.reduce((max, d) => Math.max(max, parseInt(d.no, 10) || 0), 0);
+        mappedData.push({
+          no: String(maxNo + 1),
+          stasiun: stasiunVal,
+          category: categoryVal,
+          brand: brandVal,
+          tanggalDown: tglDownVal,
+          waktuDown: ekstrakJam(waktuDownVal),
+          tanggalUp: tglUpVal,
+          waktuUp: ekstrakJam(waktuUpVal),
+          durasi: durasiVal,
+          durasiMenit: hitungMenitDurasi(durasiVal),
+          slaCategory: slaVal,
+          dateObj: parseStringDate(tglDownVal),
+          problem: problemVal,
+          action: actionVal,
+          status: statusVal
         });
-
-        lastCsvText = ""; // Reset cache agar data baru langsung diambil
-        alert(editNo ? "Data berhasil diperbarui di Google Sheets!" : "Data berhasil disimpan ke Google Sheets!");
-        tutupModal();
-        setTimeout(ambilData, 600);
-
-      } catch (err) {
-        console.error("Gagal simpan:", err);
-        lastCsvText = "";
-        alert("Proses simpan selesai.");
-        tutupModal();
-        setTimeout(ambilData, 600);
-      } finally {
-        btnSubmit.innerText = "Simpan ke Google Sheets";
-        btnSubmit.disabled = false;
       }
+
+      // Tutup modal seketika dan refresh tabel lokal
+      tutupModal();
+      terapkanFilter();
+      document.getElementById("sync-status").innerText = "Menyimpan ke Sheet...";
+
+      // Kirim ke Google Apps Script di background tanpa memblokir UI
+      isSaving = true;
+      fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        keepalive: true,
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      }).then(() => {
+        isSaving = false;
+        lastCsvText = "";
+        document.getElementById("sync-status").innerText = "Live Sync (15s)";
+      }).catch(err => {
+        console.error("Gagal kirim background:", err);
+        isSaving = false;
+        document.getElementById("sync-status").innerText = "Live Sync (15s)";
+      });
     }
 
     function ekstrakJam(str) {
@@ -627,11 +685,8 @@
 
       if (strDurasi.includes(':')) {
         const parts = strDurasi.split(':').map(Number);
-        if (parts.length === 3) {
-          return (parts[0] * 60) + parts[1] + (parts[2] / 60);
-        } else if (parts.length === 2) {
-          return (parts[0] * 60) + parts[1];
-        }
+        if (parts.length === 3) return (parts[0] * 60) + parts[1] + (parts[2] / 60);
+        if (parts.length === 2) return (parts[0] * 60) + parts[1];
       }
 
       const jamMatch = strDurasi.match(/(\d+)\s*(jam|hr|hour)/i);
@@ -727,13 +782,14 @@
     }
 
     async function ambilData() {
-      try {
-        const respon = await fetch(FETCH_URL + "&_=" + new Date().getTime());
-        const teks = await respon.text();
+      // Jangan sync saat modal terbuka atau sedang menyimpan data agar tidak lag/bentrok
+      if (isModalOpen || isSaving) return;
 
+      try {
+        const respon = await fetch(FETCH_URL + "&_=" + Date.now());
+        const teks = await respon.text();
         const skrg = new Date().toLocaleTimeString('id-ID');
 
-        // ANTI-LAG: Jika tidak ada perubahan data di Google Sheets, jangan render ulang DOM & Chart
         if (teks === lastCsvText) {
           document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg + " (Stabil)";
           return;
@@ -792,7 +848,7 @@
           });
 
         updateDropdowns();
-        terapkanFilter();
+        terapkanFilter(false); // Jangan reset halaman jika auto-sync
 
         document.getElementById("waktu-update").innerText = "Terakhir Diperbarui: " + skrg;
 
@@ -829,7 +885,7 @@
         return;
       }
 
-      container.innerHTML = list.map(st => `
+      container.innerHTML = list.slice(0, 80).map(st => `
         <div onclick="pilihStasiunModal('${st.replace(/'/g, "\\'")}')" 
              style="padding: 10px 12px; cursor: pointer; color: #f8fafc; font-size: 13px; border-bottom: 1px solid #1e293b;" 
              onmouseover="this.style.background='#1e293b'" 
@@ -874,47 +930,48 @@
       terapkanFilter();
     }
 
-    function terapkanFilter() {
+    function terapkanFilter(resetPage = true) {
+      if (resetPage) currentPage = 1;
+
       const kw = document.getElementById("search-input").value.toLowerCase();
       const stasiun = document.getElementById("filter-stasiun").value;
       const category = document.getElementById("filter-category").value;
 
+      const start = selectedStartDate ? setZeroTime(selectedStartDate) : null;
+      const end = selectedEndDate ? setZeroTime(selectedEndDate) : null;
+
       const hasil = mappedData.filter(item => {
-        const cocokKw = !kw || Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(kw));
-        const cocokStasiun = !stasiun || item.stasiun === stasiun;
-        const cocokCategory = !category || item.category === category;
+        if (stasiun && item.stasiun !== stasiun) return false;
+        if (category && item.category !== category) return false;
 
-        let cocokTanggal = true;
-        if (selectedStartDate && selectedEndDate) {
-          if (item.dateObj) {
-            const start = setZeroTime(selectedStartDate);
-            const end = setZeroTime(selectedEndDate);
-            const target = setZeroTime(item.dateObj);
-            cocokTanggal = target >= start && target <= end;
-          } else {
-            cocokTanggal = false;
-          }
+        if (start && end) {
+          if (!item.dateObj) return false;
+          const target = setZeroTime(item.dateObj);
+          if (target < start || target > end) return false;
         }
 
-        let cocokChart = true;
-        if (chartClickFilter.type === 'tanggal') {
-          cocokChart = item.tanggalDown === chartClickFilter.value;
-        } else if (chartClickFilter.type === 'category') {
-          cocokChart = item.category === chartClickFilter.value;
-        } else if (chartClickFilter.type === 'stasiun') {
-          cocokChart = item.stasiun === chartClickFilter.value;
-        } else if (chartClickFilter.type === 'sla') {
-          if (chartClickFilter.value === '< 4 Hour') {
-            cocokChart = item.durasiMenit > 0 && item.durasiMenit <= 240;
-          } else if (chartClickFilter.value === '> 4 Hour') {
-            cocokChart = item.durasiMenit > 240;
-          }
+        if (chartClickFilter.type === 'tanggal' && item.tanggalDown !== chartClickFilter.value) return false;
+        if (chartClickFilter.type === 'category' && item.category !== chartClickFilter.value) return false;
+        if (chartClickFilter.type === 'stasiun' && item.stasiun !== chartClickFilter.value) return false;
+        if (chartClickFilter.type === 'sla') {
+          if (chartClickFilter.value === '< 4 Hour' && !(item.durasiMenit > 0 && item.durasiMenit <= 240)) return false;
+          if (chartClickFilter.value === '> 4 Hour' && !(item.durasiMenit > 240)) return false;
         }
 
-        return cocokKw && cocokStasiun && cocokCategory && cocokTanggal && cocokChart;
+        if (kw) {
+          const match = (item.stasiun && item.stasiun.toLowerCase().includes(kw)) ||
+                        (item.problem && item.problem.toLowerCase().includes(kw)) ||
+                        (item.action && item.action.toLowerCase().includes(kw)) ||
+                        (item.category && item.category.toLowerCase().includes(kw)) ||
+                        (item.brand && item.brand.toLowerCase().includes(kw)) ||
+                        (item.no && String(item.no).includes(kw));
+          if (!match) return false;
+        }
+
+        return true;
       });
 
-      renderTabel(hasil);
+      siapkanDataTabel(hasil);
       updateAnalytics(hasil);
     }
 
@@ -930,32 +987,62 @@
       resetChartClickFilter();
     }
 
-    function renderTabel(data) {
-      const tbody = document.getElementById("isi-tabel");
+    function siapkanDataTabel(data) {
       const noteEl = document.getElementById("table-filter-note");
       const countEl = document.getElementById("table-row-count");
 
-      // Batas default tampilan tabel: mulai 1 Juni 2026 sampai sekarang
-      const batasTanggalTabel = new Date(2026, 5, 1); // Juni = index 5
+      const batasTanggalTabel = new Date(2026, 5, 1); // 1 Juni 2026
       batasTanggalTabel.setHours(0, 0, 0, 0);
 
       let dataTabel = data;
       if (selectedStartDate || selectedEndDate) {
-        noteEl.innerHTML = `Menampilkan data tabel sesuai <b>Filter Kalender</b>`;
+        noteEl.innerHTML = `Menampilkan data tabel sesuai <b>Filter Kalender</b> (Urut Terbaru)`;
       } else {
-        noteEl.innerHTML = `Menampilkan data tabel mulai: <b>1 Juni 2026 - Sekarang</b>`;
+        noteEl.innerHTML = `Menampilkan data tabel mulai: <b>1 Juni 2026 - Sekarang</b> (Urut Terbaru)`;
         dataTabel = data.filter(item => item.dateObj && setZeroTime(item.dateObj) >= batasTanggalTabel);
       }
 
-      countEl.innerText = `Total baris tampil: ${dataTabel.length}`;
+      // Urutkan dari nomor terbesar (terbaru) ke terlama agar data terbaru langsung tampil di atas
+      currentFilteredTableData = [...dataTabel].sort((a, b) => (parseInt(b.no, 10) || 0) - (parseInt(a.no, 10) || 0));
+      countEl.innerText = `Total data tampil: ${currentFilteredTableData.length} baris`;
 
-      if (dataTabel.length === 0) {
+      renderHalamanTabel();
+    }
+
+    function gantiHalaman(delta) {
+      const totalPages = Math.max(1, Math.ceil(currentFilteredTableData.length / ROWS_PER_PAGE));
+      const next = currentPage + delta;
+      if (next >= 1 && next <= totalPages) {
+        currentPage = next;
+        renderHalamanTabel();
+      }
+    }
+
+    function renderHalamanTabel() {
+      const tbody = document.getElementById("isi-tabel");
+      const pageInfo = document.getElementById("page-info");
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+
+      const totalRows = currentFilteredTableData.length;
+      const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      pageInfo.innerText = `Halaman ${currentPage} dari ${totalPages} (Maks. ${ROWS_PER_PAGE} baris/hal)`;
+      btnPrev.disabled = currentPage <= 1;
+      btnNext.disabled = currentPage >= totalPages;
+
+      if (totalRows === 0) {
         tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 30px; color: #94a3b8;">Tidak ada data OLT (mulai Juni 2026) yang cocok dengan filter.</td></tr>`;
         return;
       }
 
+      const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+      const sliceData = currentFilteredTableData.slice(startIdx, startIdx + ROWS_PER_PAGE);
+
       let html = '';
-      dataTabel.forEach((item) => {
+      for (let i = 0; i < sliceData.length; i++) {
+        const item = sliceData[i];
         let statusBadge = `<span class="badge badge-down">${item.status}</span>`;
         if (/progress|penanganan/i.test(item.status)) {
           statusBadge = `<span class="badge badge-progress">${item.status}</span>`;
@@ -976,11 +1063,9 @@
           <td>${item.problem}</td>
           <td>${item.action}</td>
           <td>${statusBadge}</td>
-          <td>
-            <button class="btn-edit-row" onclick="editData('${item.no}')">✏️ Edit</button>
-          </td>
+          <td><button class="btn-edit-row" onclick="editData('${item.no}')">✏️ Edit</button></td>
         </tr>`;
-      });
+      }
 
       tbody.innerHTML = html;
     }
@@ -997,11 +1082,10 @@
 
     function renderTrendHarian(data) {
       const counts = {};
-      data.forEach(d => {
-        if (d.tanggalDown && d.tanggalDown !== '-') {
-          counts[d.tanggalDown] = (counts[d.tanggalDown] || 0) + 1;
-        }
-      });
+      for (let i = 0; i < data.length; i++) {
+        const tgl = data[i].tanggalDown;
+        if (tgl && tgl !== '-') counts[tgl] = (counts[tgl] || 0) + 1;
+      }
 
       const labels = Object.keys(counts);
       const values = Object.values(counts);
@@ -1020,7 +1104,7 @@
             backgroundColor: 'rgba(56, 189, 248, 0.15)',
             fill: true,
             tension: 0.3,
-            pointRadius: 5,
+            pointRadius: 4,
             pointBackgroundColor: '#38bdf8'
           }]
         },
@@ -1029,16 +1113,13 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            datalabels: { color: '#f8fafc', anchor: 'end', align: 'top', font: { weight: 'bold' } }
+            datalabels: { color: '#f8fafc', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 } }
           },
           onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              handleChartClick('tanggal', labels[idx]);
-            }
+            if (activeEls.length > 0) handleChartClick('tanggal', labels[activeEls[0].index]);
           },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#2e3d5c' } },
+            x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: '#2e3d5c' } },
             y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: '#2e3d5c' } }
           }
         }
@@ -1047,11 +1128,10 @@
 
     function renderPieCategory(data) {
       const counts = {};
-      data.forEach(d => {
-        if (d.category && d.category !== '-') {
-          counts[d.category] = (counts[d.category] || 0) + 1;
-        }
-      });
+      for (let i = 0; i < data.length; i++) {
+        const cat = data[i].category;
+        if (cat && cat !== '-') counts[cat] = (counts[cat] || 0) + 1;
+      }
 
       const labels = Object.keys(counts);
       const values = Object.values(counts);
@@ -1080,10 +1160,7 @@
             datalabels: { color: '#ffffff', font: { weight: 'bold' } }
           },
           onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              handleChartClick('category', labels[idx]);
-            }
+            if (activeEls.length > 0) handleChartClick('category', labels[activeEls[0].index]);
           }
         }
       });
@@ -1091,11 +1168,10 @@
 
     function renderBarTopStasiun(data) {
       const counts = {};
-      data.forEach(d => {
-        if (d.stasiun && d.stasiun !== '-') {
-          counts[d.stasiun] = (counts[d.stasiun] || 0) + 1;
-        }
-      });
+      for (let i = 0; i < data.length; i++) {
+        const st = data[i].stasiun;
+        if (st && st !== '-') counts[st] = (counts[st] || 0) + 1;
+      }
 
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
       const labels = sorted.map(s => s[0]);
@@ -1122,10 +1198,7 @@
             datalabels: { color: '#ffffff', anchor: 'end', align: 'top', font: { weight: 'bold' } }
           },
           onClick: (evt, activeEls) => {
-            if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
-              handleChartClick('stasiun', labels[idx]);
-            }
+            if (activeEls.length > 0) handleChartClick('stasiun', labels[activeEls[0].index]);
           },
           scales: {
             x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
@@ -1139,12 +1212,13 @@
       let under4 = 0;
       let over4 = 0;
 
-      data.forEach(d => {
-        if (d.durasiMenit > 0) {
-          if (d.durasiMenit <= 240) under4++;
+      for (let i = 0; i < data.length; i++) {
+        const m = data[i].durasiMenit;
+        if (m > 0) {
+          if (m <= 240) under4++;
           else over4++;
         }
-      });
+      }
 
       if (pieSLAInstance) pieSLAInstance.destroy();
 
@@ -1167,9 +1241,8 @@
           },
           onClick: (evt, activeEls) => {
             if (activeEls.length > 0) {
-              const idx = activeEls[0].index;
               const labels = ['< 4 Hour', '> 4 Hour'];
-              handleChartClick('sla', labels[idx]);
+              handleChartClick('sla', labels[activeEls[0].index]);
             }
           }
         }
@@ -1181,46 +1254,44 @@
       const headerRow = document.getElementById('sla-table-header');
       const bodyContainer = document.getElementById('sla-table-body');
 
+      // Hitung semua matriks dalam 1x loop (jauh lebih cepat dari .filter() berulang)
+      const stats = {};
+      categories.forEach(c => stats[c] = { under4: 0, over4: 0, total: 0 });
+
+      for (let i = 0; i < data.length; i++) {
+        const d = data[i];
+        if (!stats[d.category]) continue;
+        stats[d.category].total++;
+        if (d.durasiMenit > 0 && d.durasiMenit <= 240) stats[d.category].under4++;
+        else if (d.durasiMenit > 240) stats[d.category].over4++;
+      }
+
       let headerHTML = `<th>WAKTU SOLVING</th>`;
-      categories.forEach(cat => {
-        headerHTML += `<th>${cat}</th>`;
-      });
+      categories.forEach(cat => { headerHTML += `<th>${cat}</th>`; });
       headerHTML += `<th>Grand Total</th>`;
       headerRow.innerHTML = headerHTML;
 
-      const slaGroups = ['< 4 Hour', '> 4 Hour'];
-      let bodyHTML = '';
+      let underTotal = 0, overTotal = 0, grandTotalAll = 0;
+      let rowUnder = `<tr><td style="font-weight: bold; text-align: left;">&lt; 4 Hour</td>`;
+      let rowOver = `<tr><td style="font-weight: bold; text-align: left;">&gt; 4 Hour</td>`;
+      let rowGrand = `<tr style="background: #0f172a; font-weight: bold;"><td style="text-align: left; color: #38bdf8;">Grand Total</td>`;
 
-      slaGroups.forEach(sla => {
-        bodyHTML += `<tr><td style="font-weight: bold; text-align: left;">${sla}</td>`;
-        let rowTotal = 0;
-
-        categories.forEach(cat => {
-          const count = data.filter(d => {
-            const isCat = d.category === cat;
-            let isSla = false;
-            if (sla === '< 4 Hour') isSla = d.durasiMenit > 0 && d.durasiMenit <= 240;
-            else isSla = d.durasiMenit > 240;
-            return isCat && isSla;
-          }).length;
-
-          rowTotal += count;
-          bodyHTML += `<td>${count}</td>`;
-        });
-
-        bodyHTML += `<td class="highlight-cell">${rowTotal}</td></tr>`;
-      });
-
-      bodyHTML += `<tr style="background: #0f172a; font-weight: bold;"><td style="text-align: left; color: #38bdf8;">Grand Total</td>`;
-      let grandTotalAll = 0;
       categories.forEach(cat => {
-        const catTotal = data.filter(d => d.category === cat).length;
-        grandTotalAll += catTotal;
-        bodyHTML += `<td style="color: #38bdf8;">${catTotal}</td>`;
-      });
-      bodyHTML += `<td style="color: #38bdf8; font-weight: 800;">${grandTotalAll}</td></tr>`;
+        const s = stats[cat];
+        underTotal += s.under4;
+        overTotal += s.over4;
+        grandTotalAll += s.total;
 
-      bodyContainer.innerHTML = bodyHTML;
+        rowUnder += `<td>${s.under4}</td>`;
+        rowOver += `<td>${s.over4}</td>`;
+        rowGrand += `<td style="color: #38bdf8;">${s.total}</td>`;
+      });
+
+      rowUnder += `<td class="highlight-cell">${underTotal}</td></tr>`;
+      rowOver += `<td class="highlight-cell">${overTotal}</td></tr>`;
+      rowGrand += `<td style="color: #38bdf8; font-weight: 800;">${grandTotalAll}</td></tr>`;
+
+      bodyContainer.innerHTML = rowUnder + rowOver + rowGrand;
     }
   </script>
 </body>
